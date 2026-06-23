@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: ev_parts_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ev_parts
+      POSTGRES_USER: ev_user
+      POSTGRES_PASSWORD: ev_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+      - ev_parts_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ev_user -d ev_parts"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ev_parts_data:
+    driver: local
