@@ -10,6 +10,8 @@ services:
       POSTGRES_USER: ev_user
       POSTGRES_PASSWORD: ev_password
       PGDATA: /var/lib/postgresql/data/pgdata
+    command: |
+      -c search_path=geo,product,production,procurement,sales,inventory,finance,logistics,esg,aftersales,public
     ports:
       - "5432:5432"
     volumes:

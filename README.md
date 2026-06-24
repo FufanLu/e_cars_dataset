@@ -61,20 +61,34 @@ text2ontology 会自动读取：
 
 ## 数据库结构概览
 
-### 业务域 & 表清单
+数据库 `ev_parts` 按业务域拆分为 **10 个 schema**，每个 schema 对应一个独立的业务域，方便 text2ontology 按域读取生成命名空间隔离的 ontology。
 
-| 域 | 表 | 说明 |
-|----|----|----|
-| **地理/货币** | `dim_region`, `dim_country`, `dim_currency` | 16国、15币种、4大区 |
-| **产品/BOM** | `dim_component_category`, `dim_component`, `bom_header`, `bom_item`, `dim_raw_material`, `component_material_usage`, `fact_raw_material_price_daily` | 25个零部件、多层BOM、原材料日价 |
-| **生产** | `dim_factory`, `dim_production_line`, `fact_production_order`, `fact_quality_inspection`, `fact_scrap_event` | 10厂、14生产线、~4800生产订单 |
-| **供应商/采购** | `dim_supplier`, `fact_purchase_order`, `fact_purchase_order_item`, `fact_supplier_delivery`, `fact_supplier_quality` | 20供应商、采购订单、来料质量 |
-| **客户/销售** | `dim_customer`, `dim_sales_channel`, `fact_country_price_list`, `fact_price_agreement`, `fact_sales_order`, `fact_sales_order_item`, `fact_rebate`, `fact_volume_discount` | 20客户、多国定价、~4000销售订单 |
-| **库存** | `dim_warehouse`, `fact_inventory_snapshot`, `fact_inventory_movement`, `fact_stockout_event` | 10仓、月末快照、断货事件 |
-| **财务** | `fact_exchange_rate_daily`, `fact_interest_rate_daily`, `fact_receivable_aging`, `fact_inventory_carrying_cost` | ~12000汇率行、利率、应收账龄 |
-| **物流/关税** | `fact_tariff_rate`, `fact_trade_lane`, `fact_freight_cost`, `fact_shipping_order` | 17关税规则、15航线 |
-| **ESG/碳** | `dim_emission_scope`, `fact_factory_energy_consumption`, `fact_component_carbon_footprint`, `fact_supplier_esg_score`, `fact_shipping_emission`, `fact_carbon_price`, `fact_carbon_tax`, `fact_carbon_credit` | 月度碳排、EU ETS碳价、碳税 |
-| **售后** | `dim_failure_mode`, `fact_warranty_claim`, `fact_field_failure` | 12故障模式、~800索赔、现场失效率 |
+### Schema & 表清单
+
+| Schema | 表 | 说明 |
+|--------|----|----|
+| **geo** | `dim_region`, `dim_country`, `dim_currency` | 16国、15币种、4大区 |
+| **product** | `dim_component_category`, `dim_component`, `bom_header`, `bom_item`, `dim_raw_material`, `component_material_usage`, `fact_raw_material_price_daily` | 25个零部件、多层BOM、原材料日价 |
+| **production** | `dim_factory`, `dim_production_line`, `fact_production_order`, `fact_quality_inspection`, `fact_scrap_event` | 10厂、14生产线、~4800生产订单 |
+| **procurement** | `dim_supplier`, `fact_purchase_order`, `fact_purchase_order_item`, `fact_supplier_delivery`, `fact_supplier_quality` | 20供应商、采购订单、来料质量 |
+| **sales** | `dim_customer`, `dim_sales_channel`, `fact_country_price_list`, `fact_price_agreement`, `fact_sales_order`, `fact_sales_order_item`, `fact_rebate`, `fact_volume_discount` | 20客户、多国定价、~4000销售订单 |
+| **inventory** | `dim_warehouse`, `fact_inventory_snapshot`, `fact_inventory_movement`, `fact_stockout_event` | 10仓、月末快照、断货事件 |
+| **finance** | `fact_exchange_rate_daily`, `fact_interest_rate_daily`, `fact_receivable_aging`, `fact_inventory_carrying_cost` | ~12000汇率行、利率、应收账龄 |
+| **logistics** | `fact_tariff_rate`, `fact_trade_lane`, `fact_freight_cost`, `fact_shipping_order` | 17关税规则、15航线 |
+| **esg** | `dim_emission_scope`, `fact_factory_energy_consumption`, `fact_component_carbon_footprint`, `fact_supplier_esg_score`, `fact_shipping_emission`, `fact_carbon_price`, `fact_carbon_tax`, `fact_carbon_credit` | 月度碳排、EU ETS碳价、碳税 |
+| **aftersales** | `dim_failure_mode`, `fact_warranty_claim`, `fact_field_failure` | 12故障模式、~800索赔、现场失效率 |
+
+### text2ontology 用法
+
+```bash
+# 按 schema 分别生成 ontology（推荐）
+text2ontology --db-url "postgresql://ev_user:ev_password@localhost:5432/ev_parts" --schema geo         --output geo.ttl
+text2ontology --db-url "postgresql://ev_user:ev_password@localhost:5432/ev_parts" --schema product     --output product.ttl
+# ... 每个 schema 独立生成
+
+# 或一次生成所有（视图在 public）
+text2ontology --db-url "postgresql://ev_user:ev_password@localhost:5432/ev_parts" --output ev_parts_full.ttl
+```
 
 ---
 
@@ -156,13 +170,23 @@ docker compose up -d
 
 ```
 ev-parts-lakehouse/
-├── docker-compose.yml          # PostgreSQL 16 服务配置
+├── docker-compose.yml            # PostgreSQL 16 服务配置
 ├── initdb/
-│   ├── 01_schema.sql           # DDL：所有表、索引、约束、注释、视图
-│   ├── 02_seed.sql             # 种子：维表数据（国家/产品/工厂/客户等）
-│   └── 03_seed_facts.sql       # 种子：事实表批量数据（generate_series）
+│   ├── 00_extensions.sql         # 扩展 + 10个 SCHEMA 创建
+│   ├── 01_geo.sql                # geo: DDL + 种子（国家/币种/地区）
+│   ├── 02_product.sql            # product: DDL + 种子（零部件/BOM/原材料）
+│   ├── 03_production.sql         # production: DDL + 种子（工厂/生产线）
+│   ├── 04_procurement.sql        # procurement: DDL + 种子（供应商）
+│   ├── 05_sales.sql              # sales: DDL + 种子（客户/渠道/价格）
+│   ├── 06_inventory.sql          # inventory: DDL + 种子（仓库）
+│   ├── 07_finance.sql            # finance: DDL（汇率/利率/应收）
+│   ├── 08_logistics.sql          # logistics: DDL + 种子（关税/航线）
+│   ├── 09_esg.sql                # esg: DDL + 种子（碳排放分类）
+│   ├── 10_aftersales.sql         # aftersales: DDL + 种子（故障模式）
+│   ├── 11_views.sql              # 跨 schema 分析视图
+│   └── 20_fact_data.sql          # 所有事实表批量数据（generate_series）
 ├── docs/
-│   ├── er.md                   # ER图（Mermaid）
-│   └── sample_questions.md     # 示例分析问题 + 参考 SQL
+│   ├── er.md                     # ER图（Mermaid）
+│   └── sample_questions.md       # 示例分析问题 + 参考 SQL
 └── README.md
 ```

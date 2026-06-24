@@ -1,13 +1,14 @@
 -- =============================================================================
--- EV Parts Lakehouse - Fact Tables Seed Data
--- Uses generate_series for bulk realistic data generation
--- Pure PostgreSQL SQL, no external scripts
+-- EV Parts Lakehouse - Fact Tables Seed Data (generate_series bulk)
+-- PostgreSQL 16
+-- search_path covers all schemas so unqualified table names resolve
 -- =============================================================================
 
 SET client_encoding = 'UTF8';
+SET search_path TO finance, sales, production, procurement, inventory, logistics, esg, aftersales, product, geo, public;
 
 -- =============================================================================
--- FACT: 汇率日表 (2023-01-01 ~ 2025-03-31, ~830天 * 14对 ≈ 11620行)
+-- FACT: 汇率日表 (2023-01-01 ~ 2025-03-31)
 -- =============================================================================
 
 INSERT INTO fact_exchange_rate_daily (rate_date, from_currency_id, to_currency_id, rate, rate_source)
@@ -105,63 +106,7 @@ CROSS JOIN (
 JOIN dim_raw_material m ON m.material_code = mp.mat_code;
 
 -- =============================================================================
--- FACT: 关税税率表
--- =============================================================================
-
-INSERT INTO fact_tariff_rate (hs_code, from_country_id, to_country_id, tariff_rate_pct, effective_from, tariff_type, notes) VALUES
--- CN -> US (高关税，中美贸易战遗留)
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='US'), 27.50, '2023-01-01', 'RETALIATORY',  'Section 301 tariff on CN battery packs'),
-('8501532090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='US'), 25.00, '2023-01-01', 'RETALIATORY',  'Section 301 tariff on CN EV motors'),
-('8504401990', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='US'), 25.00, '2023-01-01', 'RETALIATORY',  'Section 301 tariff on inverters/OBC'),
--- CN -> DE/EU (欧盟反补贴税)
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='DE'), 17.80, '2024-10-31', 'ANTI_DUMPING', 'EU countervailing duty on CN EV batteries'),
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='FR'), 17.80, '2024-10-31', 'ANTI_DUMPING', 'EU countervailing duty on CN EV batteries'),
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='HU'), 17.80, '2024-10-31', 'ANTI_DUMPING', 'EU countervailing duty on CN EV batteries'),
--- CN -> EU MFN（2023年以前）
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='DE'), 3.70, '2023-01-01', 'MFN', 'EU MFN duty on battery packs pre-2024'),
--- DE/EU -> US (MFN)
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='DE'), (SELECT country_id FROM dim_country WHERE country_code='US'), 3.70, '2023-01-01', 'MFN', 'US MFN tariff on EU battery imports'),
-('8501532090', (SELECT country_id FROM dim_country WHERE country_code='DE'), (SELECT country_id FROM dim_country WHERE country_code='US'), 2.50, '2023-01-01', 'MFN', 'US MFN tariff on EU motors'),
--- US -> CN
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='US'), (SELECT country_id FROM dim_country WHERE country_code='CN'), 5.00, '2023-01-01', 'MFN', 'CN MFN tariff on imported battery packs'),
--- KR -> US (KORUS FTA)
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='KR'), (SELECT country_id FROM dim_country WHERE country_code='US'), 0.00, '2023-01-01', 'FTA',  'KORUS FTA 0% tariff'),
--- MX -> US (USMCA)
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='MX'), (SELECT country_id FROM dim_country WHERE country_code='US'), 0.00, '2023-01-01', 'FTA',  'USMCA 0% tariff'),
--- TH -> EU (GSP)
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='TH'), (SELECT country_id FROM dim_country WHERE country_code='DE'), 2.00, '2023-01-01', 'PREFERENTIAL', 'EU GSP for Thailand'),
--- CN -> IN
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='IN'), 15.00, '2023-01-01', 'MFN', 'India MFN + BCD on battery packs'),
--- CN -> JP
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='JP'), 0.00, '2023-01-01', 'MFN', 'Japan 0% MFN on EV batteries'),
--- CN -> MX
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='MX'), 12.00,'2023-01-01', 'MFN', 'Mexico MFN tariff'),
--- HU -> US
-('8507600090', (SELECT country_id FROM dim_country WHERE country_code='HU'), (SELECT country_id FROM dim_country WHERE country_code='US'), 3.70, '2023-01-01', 'MFN', 'US MFN tariff on EU battery imports');
-
--- =============================================================================
--- FACT: 贸易航线
--- =============================================================================
-
-INSERT INTO fact_trade_lane (lane_code, from_country_id, to_country_id, transport_mode, transit_days, base_rate_usd_per_cbm, base_rate_usd_per_kg, carrier) VALUES
-('CN-SH-US-LA-SEA',  (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='US'), 'SEA', 18, 42.0, 0.048, 'COSCO / MSC'),
-('CN-SH-DE-HH-SEA',  (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='DE'), 'SEA', 28, 38.5, 0.042, 'COSCO / Hapag-Lloyd'),
-('CN-SH-JP-TK-SEA',  (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='JP'), 'SEA',  4, 18.0, 0.022, 'COSCO / NYK'),
-('CN-SH-KR-BU-SEA',  (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='KR'), 'SEA',  3, 16.0, 0.019, 'SITC'),
-('CN-SH-IN-MU-SEA',  (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='IN'), 'SEA', 12, 25.0, 0.030, 'MSC'),
-('CN-SH-MX-MZ-SEA',  (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='MX'), 'SEA', 22, 45.0, 0.052, 'COSCO'),
-('CN-SH-VN-HCM-SEA', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='VN'), 'SEA',  4, 15.0, 0.018, 'SITC'),
-('CN-SH-TH-LCB-SEA', (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='TH'), 'SEA',  7, 20.0, 0.024, 'MSC'),
-('DE-HH-US-NY-SEA',  (SELECT country_id FROM dim_country WHERE country_code='DE'), (SELECT country_id FROM dim_country WHERE country_code='US'), 'SEA', 14, 35.0, 0.040, 'Hapag-Lloyd'),
-('HU-BU-DE-MU-ROAD', (SELECT country_id FROM dim_country WHERE country_code='HU'), (SELECT country_id FROM dim_country WHERE country_code='DE'), 'ROAD', 2, 8.0,  0.012, 'DB Schenker'),
-('DE-MU-FR-PA-ROAD', (SELECT country_id FROM dim_country WHERE country_code='DE'), (SELECT country_id FROM dim_country WHERE country_code='FR'), 'ROAD', 1, 7.0,  0.010, 'DHL Freight'),
-('CN-SH-SG-SG-SEA',  (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='SG'), 'SEA',  5, 16.5, 0.020, 'PIL'),
-('MX-MT-US-TX-ROAD', (SELECT country_id FROM dim_country WHERE country_code='MX'), (SELECT country_id FROM dim_country WHERE country_code='US'), 'ROAD', 1, 6.0,  0.009, 'JB Hunt'),
-('KR-BU-US-LA-SEA',  (SELECT country_id FROM dim_country WHERE country_code='KR'), (SELECT country_id FROM dim_country WHERE country_code='US'), 'SEA', 14, 30.0, 0.035, 'HMM'),
-('CN-SH-US-LA-AIR',  (SELECT country_id FROM dim_country WHERE country_code='CN'), (SELECT country_id FROM dim_country WHERE country_code='US'), 'AIR',  2, 0.0,  4.800, 'Air China Cargo');
-
--- =============================================================================
--- FACT: 碳价格 (2023-01-01 ~ 2025-03-31)
+-- FACT: 碳价格 (2023-01-01 ~ 2025-03-31, 每周)
 -- =============================================================================
 
 INSERT INTO fact_carbon_price (price_date, country_id, scheme, price_usd_per_tco2e)
@@ -184,76 +129,8 @@ CROSS JOIN (
 JOIN dim_country c ON c.country_code = cp.country_code;
 
 -- =============================================================================
--- FACT: 生产订单 (2023-01-01 ~ 2025-03-31, 约 4800 行)
+-- FACT: 生产订单 (2023-01-01 ~ 2025-03-31, 每周14条生产线, ~4800行)
 -- =============================================================================
-
-INSERT INTO fact_production_order (
-    prod_order_no, component_id, line_id, factory_id,
-    planned_qty, actual_qty, scrap_qty,
-    planned_start, planned_end, actual_start, actual_end,
-    status,
-    std_material_cost_usd, actual_material_cost_usd,
-    std_labor_cost_usd, actual_labor_cost_usd,
-    std_overhead_cost_usd, actual_overhead_cost_usd
-)
-SELECT
-    'PO-' || TO_CHAR(d, 'YYYYMMDD') || '-' || LPAD(seq::TEXT, 4, '0'),
-    combo.component_id,
-    combo.line_id,
-    combo.factory_id,
-    base_qty,
-    ROUND(base_qty * (0.95 + (EXTRACT(DOY FROM d) % 10) * 0.01))::NUMERIC,
-    ROUND(base_qty * scrap_r)::NUMERIC,
-    d::TIMESTAMPTZ,
-    (d + INTERVAL '5 days')::TIMESTAMPTZ,
-    (d + INTERVAL '1 hour')::TIMESTAMPTZ,
-    (d + INTERVAL '4 days 18 hours')::TIMESTAMPTZ,
-    'COMPLETED',
-    ROUND(base_qty * std_mat, 2),
-    ROUND(base_qty * std_mat * (1 + (EXTRACT(DOY FROM d) % 7 - 3) * 0.01), 2),
-    ROUND(base_qty * std_lab, 2),
-    ROUND(base_qty * std_lab * (1 + (EXTRACT(DOY FROM d) % 5 - 2) * 0.01), 2),
-    ROUND(base_qty * std_ovh, 2),
-    ROUND(base_qty * std_ovh * (1 + (EXTRACT(DOY FROM d) % 6 - 3) * 0.015), 2)
-FROM (
-    SELECT
-        component_id, line_id, factory_id,
-        base_qty, scrap_r, std_mat, std_lab, std_ovh,
-        ROW_NUMBER() OVER () AS seq_base
-    FROM (VALUES
-        -- 上海工厂: 电池包 + 模组
-        ('BP-100-NMC','LINE-SH-BP1','FAC-CN-SH', 200, 0.003, 8200, 820, 1230),
-        ('BP-075-LFP','LINE-SH-BP2','FAC-CN-SH', 300, 0.003, 5800, 580,  870),
-        ('BM-NMC-12S','LINE-SH-BM1','FAC-CN-SH', 3500,0.004,  520,  52,   78),
-        ('BM-LFP-16S','LINE-SH-BM1','FAC-CN-SH', 4000,0.004,  380,  38,   57),
-        -- 武汉工厂: 电机 + 逆变器
-        ('MTR-200KW-PMSM','LINE-WH-MT1','FAC-CN-WH', 400, 0.002, 1850, 185, 278),
-        ('MTR-150KW-PMSM','LINE-WH-MT1','FAC-CN-WH', 500, 0.002, 1420, 142, 213),
-        ('INV-200KW-SIC', 'LINE-WH-IV1','FAC-CN-WH', 350, 0.003,  980,  98, 147),
-        ('INV-150KW-IGBT','LINE-WH-IV1','FAC-CN-WH', 450, 0.003,  720,  72, 108),
-        -- Leipzig德国: NMC/LFP模组
-        ('BM-NMC-12S','LINE-DE-LZ1','FAC-DE-LZ', 2000, 0.003, 520, 104, 156),
-        ('BM-LFP-16S','LINE-DE-LZ2','FAC-DE-LZ', 2500, 0.003, 380,  76, 114),
-        -- 美国德州: 电池包
-        ('BP-100-NMC','LINE-TX-BP1','FAC-US-TX', 250, 0.003, 8200, 1230, 1845),
-        ('BP-075-LFP','LINE-TX-BP1','FAC-US-TX', 350, 0.003, 5800,  870, 1305),
-        -- 匈牙利德布勒森: 电池包
-        ('BP-075-LFP','LINE-HU-BP1','FAC-HU-DE', 250, 0.003, 5800, 812, 1218),
-        ('BP-050-LFP','LINE-HU-BP1','FAC-HU-DE', 200, 0.003, 4100, 574,  861)
-    ) AS v(comp_code, line_code, fac_code, base_qty, scrap_r, std_mat, std_lab, std_ovh)
-    JOIN dim_component c   ON c.component_code = v.comp_code
-    JOIN dim_production_line l ON l.line_code  = v.line_code
-    JOIN dim_factory f     ON f.factory_code   = v.fac_code
-) AS combo
-CROSS JOIN generate_series('2023-01-01'::DATE, '2025-03-31'::DATE, INTERVAL '7 days') AS d
-CROSS JOIN (SELECT generate_series(1, 14) AS seq) AS s
-WHERE s.seq = combo.seq_base
-   OR TRUE  -- 每条 combo 每周都生成一条
-ORDER BY d, combo.seq_base
-LIMIT 6000;
-
--- 修正：更简洁的生产订单生成
-TRUNCATE fact_production_order CASCADE;
 
 INSERT INTO fact_production_order (
     prod_order_no, component_id, line_id, factory_id,
@@ -335,7 +212,7 @@ FROM fact_production_order po
 WHERE po.status = 'COMPLETED';
 
 -- =============================================================================
--- FACT: 采购订单 (2023-01-01 ~ 2025-03-31, 约 2400 行)
+-- FACT: 采购订单 (2023-01-01 ~ 2025-03-31, 每14天一单, ~2400行)
 -- =============================================================================
 
 INSERT INTO fact_purchase_order (po_number, supplier_id, factory_id, po_date, delivery_date, currency_id, total_amount, status, incoterm)
@@ -413,9 +290,9 @@ SELECT
     po.delivery_date,
     po.delivery_date + (
         CASE
-            WHEN po.po_id % 10 < 7 THEN 0                    -- 70% on time
-            WHEN po.po_id % 10 < 9 THEN (po.po_id % 7) + 1  -- 20% 1-7天迟
-            ELSE (po.po_id % 14) + 8                          -- 10% 8-21天严重迟
+            WHEN po.po_id % 10 < 7 THEN 0
+            WHEN po.po_id % 10 < 9 THEN (po.po_id % 7) + 1
+            ELSE (po.po_id % 14) + 8
         END
     ),
     ROUND((poi.ordered_qty * 0.98)::NUMERIC, 2),
@@ -435,7 +312,7 @@ SELECT
     sd.actual_date,
     ROUND((poi.received_qty)::NUMERIC, 2),
     ROUND((poi.received_qty * CASE
-        WHEN sd.supplier_id % 5 = 0 THEN 0.0180   -- 高缺陷供应商
+        WHEN sd.supplier_id % 5 = 0 THEN 0.0180
         WHEN sd.supplier_id % 5 = 1 THEN 0.0050
         WHEN sd.supplier_id % 5 = 2 THEN 0.0020
         WHEN sd.supplier_id % 5 = 3 THEN 0.0008
@@ -466,7 +343,7 @@ CROSS JOIN generate_series(2022, 2024) AS yr(yr)
 CROSS JOIN (VALUES (62.0, 70.0, 68.0)) AS scores(base_env, base_soc, base_gov);
 
 -- =============================================================================
--- FACT: 销售订单 (核心事实表，2023-01-01 ~ 2025-03-31, 约 4000 行)
+-- FACT: 销售订单 (~4000行)
 -- =============================================================================
 
 INSERT INTO fact_sales_order (
@@ -605,7 +482,7 @@ FROM fact_shipping_order ship
 JOIN fact_sales_order so ON so.so_id = ship.so_id;
 
 -- =============================================================================
--- FACT: 库存快照 (月末, 2023-01 ~ 2025-03, 每仓每件 = ~25 月 * 10 仓 * 15件 = 3750行)
+-- FACT: 库存快照 (月末, 2023-01 ~ 2025-03)
 -- =============================================================================
 
 INSERT INTO fact_inventory_snapshot (snapshot_date, warehouse_id, component_id, qty_on_hand, qty_reserved, avg_cost_usd, inventory_value_usd)
@@ -686,7 +563,7 @@ JOIN LATERAL (
 ) ir ON TRUE;
 
 -- =============================================================================
--- FACT: 工厂能耗碳排放 (月度, 2023-01 ~ 2025-03)
+-- FACT: 工厂能耗碳排放 (月度, Scope 2 电力)
 -- =============================================================================
 
 INSERT INTO fact_factory_energy_consumption (factory_id, period_month, scope_id, energy_type, consumption_kwh, emission_factor_kgco2e_per_kwh, total_emission_tco2e, renewable_pct)
@@ -745,7 +622,7 @@ SELECT
     (SELECT scope_id FROM dim_emission_scope WHERE scope_code='S1'),
     'NATURAL_GAS',
     ROUND((fg.gas_mj * (0.9 + (EXTRACT(MONTH FROM m.m) % 3) * 0.05))::NUMERIC, 2),
-    0.0000556,  -- 0.0556 kgCO2e/MJ natural gas
+    0.0000556,
     ROUND((fg.gas_mj * (0.9 + (EXTRACT(MONTH FROM m.m) % 3) * 0.05) * 0.0000556)::NUMERIC, 4),
     0.0
 FROM fac_gas fg
@@ -783,7 +660,7 @@ CROSS JOIN (
 CROSS JOIN generate_series(2022, 2024) AS yr;
 
 -- =============================================================================
--- FACT: 碳税 (月度, 仅欧盟国家 + 英国)
+-- FACT: 碳税 (月度, 仅欧盟+英国)
 -- =============================================================================
 
 INSERT INTO fact_carbon_tax (factory_id, period_month, country_id, total_emission_tco2e, free_allowance_tco2e, taxable_emission_tco2e, carbon_price_usd_per_tco2e, carbon_tax_usd)
@@ -792,7 +669,7 @@ SELECT
     ec.period_month,
     f.country_id,
     ec.total_emission_tco2e,
-    ROUND((ec.total_emission_tco2e * 0.30)::NUMERIC, 4),   -- 30% 免费配额
+    ROUND((ec.total_emission_tco2e * 0.30)::NUMERIC, 4),
     ROUND((ec.total_emission_tco2e * 0.70)::NUMERIC, 4),
     cp.price_usd_per_tco2e,
     ROUND((ec.total_emission_tco2e * 0.70 * cp.price_usd_per_tco2e)::NUMERIC, 2)
@@ -830,7 +707,7 @@ JOIN fact_trade_lane tl ON tl.lane_id = s.lane_id
 LEFT JOIN fact_freight_cost fc ON fc.so_id = s.so_id;
 
 -- =============================================================================
--- FACT: 保修索赔
+-- FACT: 保修索赔 (~800条)
 -- =============================================================================
 
 INSERT INTO fact_warranty_claim (claim_no, customer_id, component_id, failure_id, so_item_id, claim_date, failure_date, mileage_km, claim_qty, claim_amount_usd, approved_amount_usd, status, root_cause_analysis)
@@ -858,7 +735,7 @@ FROM fact_sales_order_item soi
 JOIN fact_sales_order so ON so.so_id = soi.so_id
 JOIN dim_failure_mode fm ON fm.failure_id = (soi.so_item_id % 12) + 1
 WHERE so.status = 'CLOSED'
-  AND (soi.so_item_id % 15) < 2   -- 约 13% 索赔率，模拟真实场景
+  AND (soi.so_item_id % 15) < 2
 LIMIT 800;
 
 -- =============================================================================
@@ -915,7 +792,6 @@ SELECT
     ROUND((2000 + f.factory_id * 300)::NUMERIC, 2)
 FROM dim_factory f;
 
--- 2024年补购
 INSERT INTO fact_carbon_credit (factory_id, credit_date, credit_type, qty_tco2e, purchase_price_usd, total_cost_usd, retired_qty)
 SELECT
     f.factory_id,
@@ -954,7 +830,7 @@ WHERE c.is_finished_good = TRUE
 LIMIT 2000;
 
 -- =============================================================================
--- 价格协议（战略客户）
+-- FACT: 价格协议（战略客户）
 -- =============================================================================
 
 INSERT INTO fact_price_agreement (agreement_no, customer_id, component_id, currency_id, agreed_price, discount_pct, min_qty_per_year, effective_from, effective_to, is_active)
@@ -963,7 +839,7 @@ SELECT
     c.customer_id,
     comp.component_id,
     c.currency_id,
-    ROUND((comp.list_price_usd * 0.88)::NUMERIC, 4),  -- 12% 框架折扣
+    ROUND((comp.list_price_usd * 0.88)::NUMERIC, 4),
     0.1200,
     ROUND((c.credit_limit_usd / NULLIF(comp.list_price_usd, 0) * 0.5)::NUMERIC, 2),
     '2024-01-01',
@@ -976,29 +852,31 @@ WHERE c.is_strategic = TRUE
   AND (c.customer_id + comp.component_id) % 3 = 0;
 
 -- =============================================================================
--- ANALYZE 优化统计信息
+-- ANALYZE - 更新统计信息
 -- =============================================================================
 
-ANALYZE dim_country;
-ANALYZE dim_component;
-ANALYZE dim_supplier;
-ANALYZE dim_customer;
-ANALYZE fact_sales_order;
-ANALYZE fact_sales_order_item;
-ANALYZE fact_production_order;
-ANALYZE fact_quality_inspection;
-ANALYZE fact_exchange_rate_daily;
-ANALYZE fact_raw_material_price_daily;
-ANALYZE fact_inventory_snapshot;
-ANALYZE fact_factory_energy_consumption;
-ANALYZE fact_carbon_tax;
-ANALYZE fact_receivable_aging;
-ANALYZE fact_supplier_delivery;
-ANALYZE fact_supplier_quality;
-ANALYZE fact_tariff_rate;
-ANALYZE fact_freight_cost;
-ANALYZE fact_shipping_emission;
-ANALYZE fact_warranty_claim;
+ANALYZE geo.dim_country;
+ANALYZE geo.dim_currency;
+ANALYZE product.dim_component;
+ANALYZE product.dim_raw_material;
+ANALYZE procurement.dim_supplier;
+ANALYZE sales.dim_customer;
+ANALYZE sales.fact_sales_order;
+ANALYZE sales.fact_sales_order_item;
+ANALYZE production.fact_production_order;
+ANALYZE production.fact_quality_inspection;
+ANALYZE finance.fact_exchange_rate_daily;
+ANALYZE product.fact_raw_material_price_daily;
+ANALYZE inventory.fact_inventory_snapshot;
+ANALYZE esg.fact_factory_energy_consumption;
+ANALYZE esg.fact_carbon_tax;
+ANALYZE finance.fact_receivable_aging;
+ANALYZE procurement.fact_supplier_delivery;
+ANALYZE procurement.fact_supplier_quality;
+ANALYZE logistics.fact_tariff_rate;
+ANALYZE logistics.fact_freight_cost;
+ANALYZE esg.fact_shipping_emission;
+ANALYZE aftersales.fact_warranty_claim;
 
 -- =============================================================================
 -- 完成提示
@@ -1006,21 +884,28 @@ ANALYZE fact_warranty_claim;
 
 DO $$
 DECLARE
+    schema_name TEXT;
     tbl TEXT;
     cnt BIGINT;
     total BIGINT := 0;
 BEGIN
-    FOR tbl, cnt IN
-        SELECT relname, reltuples::BIGINT
-        FROM pg_class
-        WHERE relkind = 'r'
-          AND relnamespace = 'public'::REGNAMESPACE
-        ORDER BY reltuples DESC
+    FOR schema_name IN
+        SELECT nspname FROM pg_namespace
+        WHERE nspname IN ('geo','product','production','procurement','sales','inventory','finance','logistics','esg','aftersales')
     LOOP
-        total := total + GREATEST(cnt, 0);
-        RAISE NOTICE 'Table: % => ~% rows', tbl, cnt;
+        FOR tbl, cnt IN
+            SELECT relname, reltuples::BIGINT
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relkind = 'r'
+              AND n.nspname = schema_name
+            ORDER BY reltuples DESC
+        LOOP
+            total := total + GREATEST(cnt, 0);
+            RAISE NOTICE '[%] % => ~% rows', schema_name, tbl, cnt;
+        END LOOP;
     END LOOP;
-    RAISE NOTICE '=== Total estimated rows: % ===', total;
+    RAISE NOTICE '=== Total estimated rows across all schemas: % ===', total;
     RAISE NOTICE '=== EV Parts Lakehouse seed data loaded successfully! ===';
 END;
 $$;
