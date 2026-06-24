@@ -14,7 +14,7 @@ SET search_path TO finance, sales, production, procurement, inventory, logistics
 INSERT INTO fact_exchange_rate_daily (rate_date, from_currency_id, to_currency_id, rate, rate_source)
 SELECT
     d::DATE AS rate_date,
-    fc.currency_id AS from_currency_id,
+    rates.from_currency_id,
     tc.currency_id AS to_currency_id,
     ROUND(
         base_rate * (1 + (EXTRACT(DOY FROM d) * 0.0003 + SIN(EXTRACT(DOY FROM d) * 0.05) * coeff) )::NUMERIC,
@@ -59,7 +59,7 @@ SELECT
     d::DATE,
     c.country_id,
     rt.rate_type,
-    ROUND((rt.base_rate + SIN(EXTRACT(DOY FROM d) * 0.02 + rt.offset) * rt.volatility)::NUMERIC, 4)
+    ROUND((rt.base_rate + SIN(EXTRACT(DOY FROM d) * 0.02 + rt.phase_off) * rt.volatility)::NUMERIC, 4)
 FROM generate_series('2023-01-01'::DATE, '2025-03-31'::DATE, INTERVAL '1 day') AS d
 CROSS JOIN (
     VALUES
@@ -73,7 +73,7 @@ CROSS JOIN (
     ('IN', 'CENTRAL_BANK',6.50,0.8, 0.30),
     ('MX', 'CENTRAL_BANK',11.25,1.0,0.50),
     ('HU', 'CENTRAL_BANK',9.00, 0.9, 0.45)
-) AS rt(country_code, rate_type, base_rate, offset, volatility)
+) AS rt(country_code, rate_type, base_rate, phase_off, volatility)
 JOIN dim_country c ON c.country_code = rt.country_code;
 
 -- =============================================================================
@@ -247,7 +247,7 @@ SELECT
     sf.supplier_id,
     sf.factory_id,
     w.po_date,
-    w.po_date + 30 + (sf.rn % 15),
+    w.po_date + 30 + (sf.rn % 15)::INT,
     sf.currency_id,
     ROUND((sf.avg_amount * (0.8 + (w.wn % 8) * 0.05))::NUMERIC, 2),
     CASE WHEN w.po_date < CURRENT_DATE - 45 THEN 'CLOSED' ELSE 'OPEN' END,
@@ -291,8 +291,8 @@ SELECT
     po.delivery_date + (
         CASE
             WHEN po.po_id % 10 < 7 THEN 0
-            WHEN po.po_id % 10 < 9 THEN (po.po_id % 7) + 1
-            ELSE (po.po_id % 14) + 8
+            WHEN po.po_id % 10 < 9 THEN (po.po_id % 7)::INT + 1
+            ELSE (po.po_id % 14)::INT + 8
         END
     ),
     ROUND((poi.ordered_qty * 0.98)::NUMERIC, 2),
@@ -358,7 +358,7 @@ WITH so_combos AS (
     SELECT
         cust.customer_id, ch.channel_id, fac.factory_id,
         dest.country_id AS dest_country_id, fac_curr.currency_id,
-        v.gross_rev, v.disc_pct, v.std_cost_pct, v.freight_pct, v.tariff_pct,
+        gr.gross_rev, v.disc_pct, v.std_cost_pct, v.freight_pct, v.tariff_pct,
         ROW_NUMBER() OVER (ORDER BY v.cust_code) AS rn
     FROM (VALUES
         ('CUST-VW-DE',  'DIR-OEM',  'FAC-DE-LZ','DE', 0.0850, 0.18200, 0.01800, 0.0280),
@@ -381,7 +381,7 @@ WITH so_combos AS (
         ('CUST-TOYOTA-JP','DIR-OEM','FAC-CN-SH','JP', 0.0600, 0.17800, 0.02000, 0.0000),
         ('CUST-RIVIAN-US','DIR-OEM','FAC-US-TX','US', 0.0680, 0.20200, 0.00000, 0.0000),
         ('CUST-RENAULT','DIR-OEM',  'FAC-HU-DE','FR', 0.0950, 0.18500, 0.01200, 0.0000)
-    ) AS v(cust_code, chan_code, fac_code, dest_code, disc_pct, std_cost_pct, freight_pct, tariff_pct, gross_rev)
+    ) AS v(cust_code, chan_code, fac_code, dest_code, disc_pct, std_cost_pct, freight_pct, tariff_pct)
     JOIN dim_customer cust ON cust.customer_code = v.cust_code
     JOIN dim_sales_channel ch ON ch.channel_code  = v.chan_code
     JOIN dim_factory fac      ON fac.factory_code  = v.fac_code
@@ -454,7 +454,7 @@ SELECT
     tl.lane_id,
     so.actual_delivery_date - tl.transit_days,
     so.actual_delivery_date,
-    so.actual_delivery_date + (so.so_id % 3),
+    so.actual_delivery_date + (so.so_id % 3)::INT,
     CASE WHEN so.actual_delivery_date < CURRENT_DATE THEN 'DELIVERED' ELSE 'IN_TRANSIT' END,
     'MSCU' || LPAD((so.so_id * 7919 % 9999999)::TEXT, 7, '0')
 FROM fact_sales_order so
@@ -718,7 +718,7 @@ SELECT
     fm.failure_id,
     soi.so_item_id,
     so.actual_delivery_date + (EXTRACT(MONTH FROM so.actual_delivery_date)::INT * 30 + soi.so_item_id % 300),
-    so.actual_delivery_date + (soi.so_item_id % 200),
+    so.actual_delivery_date + (soi.so_item_id % 200)::INT,
     (soi.so_item_id % 80000 + 5000)::NUMERIC,
     1,
     ROUND((soi.net_unit_price * 0.15)::NUMERIC, 2),

@@ -127,71 +127,95 @@ INSERT INTO dim_component_category (category_code, category_name, parent_id, lev
 
 INSERT INTO dim_component (component_code, component_name, category_id, uom, weight_kg, standard_cost_usd, list_price_usd, is_finished_good, lifecycle_stage, hs_code) VALUES
 -- 电池系统成品
-('BAT-100KWH',  '100kWh Battery Pack',       (SELECT category_id FROM dim_component_category WHERE category_code='BAT_PACK'),  'PCS', 520.00, 8500.00, 12500.00, TRUE,  'MASS', '8507.60'),
-('BAT-75KWH',   '75kWh Battery Pack',         (SELECT category_id FROM dim_component_category WHERE category_code='BAT_PACK'),  'PCS', 400.00, 6500.00, 9500.00,  TRUE,  'MASS', '8507.60'),
-('BAT-50KWH',   '50kWh Battery Pack',         (SELECT category_id FROM dim_component_category WHERE category_code='BAT_PACK'),  'PCS', 280.00, 4500.00, 6800.00,  TRUE,  'MASS', '8507.60'),
--- 电池模组/电芯
-('BAT-MOD-LFP', 'LFP Battery Module 12S2P',  (SELECT category_id FROM dim_component_category WHERE category_code='BAT_MOD'),   'PCS', 28.00,  720.00,  1050.00,  FALSE, 'MASS', '8507.90'),
-('BAT-MOD-NCM', 'NCM 811 Battery Module',    (SELECT category_id FROM dim_component_category WHERE category_code='BAT_MOD'),   'PCS', 25.00,  880.00,  1280.00,  FALSE, 'MASS', '8507.90'),
-('CELL-LFP',    'LFP Prismatic Cell 200Ah',  (SELECT category_id FROM dim_component_category WHERE category_code='CELL'),      'PCS', 3.80,   45.00,   68.00,    FALSE, 'MASS', '8507.60'),
-('CELL-NCM',    'NCM 811 Cylindrical 5Ah',   (SELECT category_id FROM dim_component_category WHERE category_code='CELL'),      'PCS', 0.07,   3.20,    5.50,     FALSE, 'MASS', '8507.60'),
+('BP-100-NMC', '100 kWh NMC Battery Pack',      (SELECT category_id FROM dim_component_category WHERE category_code='BAT_PACK'), 'PCS', 540.0,  8200.00, 12500.00, TRUE,  'MASS', '8507600090'),
+('BP-075-LFP', '75 kWh LFP Battery Pack',        (SELECT category_id FROM dim_component_category WHERE category_code='BAT_PACK'), 'PCS', 420.0,  5800.00,  8900.00, TRUE,  'MASS', '8507600090'),
+('BP-050-LFP', '50 kWh LFP Battery Pack (Std)',  (SELECT category_id FROM dim_component_category WHERE category_code='BAT_PACK'), 'PCS', 310.0,  4100.00,  6200.00, TRUE,  'MASS', '8507600090'),
+('BP-120-NMC', '120 kWh NMC Battery Pack (Premium)', (SELECT category_id FROM dim_component_category WHERE category_code='BAT_PACK'), 'PCS', 620.0, 10500.00, 15800.00, TRUE, 'RAMP', '8507600090'),
+-- 电池模组
+('BM-NMC-12S', 'NMC Battery Module 12S4P',       (SELECT category_id FROM dim_component_category WHERE category_code='BAT_MOD'),  'PCS',  38.0,   520.00,   780.00, FALSE, 'MASS', '8507600090'),
+('BM-LFP-16S', 'LFP Battery Module 16S2P',       (SELECT category_id FROM dim_component_category WHERE category_code='BAT_MOD'),  'PCS',  45.0,   380.00,   570.00, FALSE, 'MASS', '8507600090'),
+-- 电芯
+('CELL-NMC-21700', 'NMC 21700 Cylindrical Cell 5Ah',   (SELECT category_id FROM dim_component_category WHERE category_code='CELL'),   'PCS',   0.07,    4.20,    6.50, FALSE, 'MASS', '8507600010'),
+('CELL-LFP-280AH', 'LFP Prismatic Cell 280Ah',         (SELECT category_id FROM dim_component_category WHERE category_code='CELL'),   'PCS',   0.63,    8.80,   13.20, FALSE, 'MASS', '8507600010'),
+('CELL-NMC-4680',  'NMC 4680 Cylindrical Cell 23Ah',   (SELECT category_id FROM dim_component_category WHERE category_code='CELL'),   'PCS',   0.36,   18.50,   28.00, FALSE, 'RAMP', '8507600010'),
 -- BMS
-('BMS-MASTER',  'BMS Master Controller',     (SELECT category_id FROM dim_component_category WHERE category_code='BMS'),       'PCS', 1.50,   185.00,  280.00,   FALSE, 'MASS', '9032.89'),
-('BMS-SLAVE',   'BMS Slave Module 12CH',     (SELECT category_id FROM dim_component_category WHERE category_code='BMS'),       'PCS', 0.60,   72.00,   110.00,   FALSE, 'MASS', '9032.89'),
--- 驱动系统
-('MOTOR-PM200', '200kW PMSM Drive Motor',    (SELECT category_id FROM dim_component_category WHERE category_code='MOTOR'),     'PCS', 72.00,  1850.00, 2800.00,  FALSE, 'MASS', '8501.32'),
-('MOTOR-PM120', '120kW PMSM Drive Motor',    (SELECT category_id FROM dim_component_category WHERE category_code='MOTOR'),     'PCS', 52.00,  1350.00, 2050.00,  FALSE, 'MASS', '8501.32'),
-('INV-SIC800',  '800V SiC Inverter 250kW',   (SELECT category_id FROM dim_component_category WHERE category_code='INVERTER'),  'PCS', 18.00,  1100.00, 1750.00,  FALSE, 'MASS', '8504.40'),
-('INV-SIC400',  '400V SiC Inverter 150kW',   (SELECT category_id FROM dim_component_category WHERE category_code='INVERTER'),  'PCS', 14.00,  820.00,  1280.00,  FALSE, 'MASS', '8504.40'),
-('GBX-2SPD',    '2-Speed Reducer Gearbox',   (SELECT category_id FROM dim_component_category WHERE category_code='GEARBOX'),   'PCS', 35.00,  420.00,  650.00,   FALSE, 'MASS', '8483.40'),
+('BMS-96S-PRO',  'BMS 96S High-Voltage Pro',          (SELECT category_id FROM dim_component_category WHERE category_code='BMS'),    'PCS',   3.2,   320.00,   480.00, FALSE, 'MASS', '8537109900'),
+('BMS-48S-STD',  'BMS 48S Standard',                  (SELECT category_id FROM dim_component_category WHERE category_code='BMS'),    'PCS',   2.1,   185.00,   275.00, FALSE, 'MASS', '8537109900'),
+-- 电机
+('MTR-200KW-PMSM','200 kW PMSM Drive Motor',           (SELECT category_id FROM dim_component_category WHERE category_code='MOTOR'),  'PCS',  68.0,  1850.00,  2800.00, TRUE,  'MASS', '8501532090'),
+('MTR-150KW-PMSM','150 kW PMSM Drive Motor',           (SELECT category_id FROM dim_component_category WHERE category_code='MOTOR'),  'PCS',  52.0,  1420.00,  2150.00, TRUE,  'MASS', '8501532090'),
+('MTR-100KW-IM',  '100 kW Induction Motor',            (SELECT category_id FROM dim_component_category WHERE category_code='MOTOR'),  'PCS',  58.0,   980.00,  1480.00, FALSE, 'MASS', '8501532090'),
+-- 逆变器
+('INV-200KW-SIC', '200 kW SiC Power Inverter',         (SELECT category_id FROM dim_component_category WHERE category_code='INVERTER'),'PCS', 12.5,   980.00,  1480.00, TRUE,  'MASS', '8504401990'),
+('INV-150KW-IGBT','150 kW IGBT Inverter',               (SELECT category_id FROM dim_component_category WHERE category_code='INVERTER'),'PCS', 14.2,   720.00,  1080.00, TRUE,  'MASS', '8504401990'),
+-- 减速器
+('GBX-1SPD-180', 'Single-Speed Reducer 180 Nm',        (SELECT category_id FROM dim_component_category WHERE category_code='GEARBOX'), 'PCS',  18.0,   380.00,   570.00, FALSE, 'MASS', '8483409000'),
 -- 热管理
-('COOL-BATT',   'Battery Liquid Cooling Sys',(SELECT category_id FROM dim_component_category WHERE category_code='COOLANT'),   'PCS', 12.00,  280.00,  430.00,   FALSE, 'MASS', '8418.69'),
-('HEATPUMP-R134','R134a Heat Pump System',   (SELECT category_id FROM dim_component_category WHERE category_code='HEAT_PUMP'), 'PCS', 8.50,   350.00,  540.00,   FALSE, 'MASS', '8418.61'),
--- 电子控制
-('OBC-11KW',    '11kW On-Board Charger',     (SELECT category_id FROM dim_component_category WHERE category_code='OBC'),       'PCS', 8.00,   310.00,  480.00,   FALSE, 'MASS', '8504.40'),
-('DCDC-3KW',    '3kW DC-DC Converter',       (SELECT category_id FROM dim_component_category WHERE category_code='DCDC'),      'PCS', 3.50,   145.00,  225.00,   FALSE, 'MASS', '8504.40'),
-('ECU-MAIN',    'Vehicle Main ECU',          (SELECT category_id FROM dim_component_category WHERE category_code='ECU'),       'PCS', 1.20,   210.00,  340.00,   FALSE, 'MASS', '9032.89'),
--- 结构
-('CHAS-AL-SUV', 'Aluminum SUV Chassis',      (SELECT category_id FROM dim_component_category WHERE category_code='CHASSIS'),   'PCS', 320.00, 2200.00, 3500.00,  FALSE, 'MASS', '8708.29'),
--- 成品总成（组合件，标记为 finished good）
-('EDU-200KW',   '200kW eDrive Unit (Motor+Inverter+Gearbox)', (SELECT category_id FROM dim_component_category WHERE category_code='DRIVE_SYS'), 'PCS', 125.00, 3400.00, 5200.00, TRUE, 'MASS', '8501.32');
+('CHL-LIQUID-7L', 'Liquid Cooling Plate 7L Battery',   (SELECT category_id FROM dim_component_category WHERE category_code='COOLANT'), 'PCS',   4.5,   145.00,   220.00, FALSE, 'MASS', '8419899090'),
+('HP-6KW-R290',   '6 kW Heat Pump R290',               (SELECT category_id FROM dim_component_category WHERE category_code='HEAT_PUMP'),'PCS', 14.0,   520.00,   780.00, TRUE,  'MASS', '8415819000'),
+-- OBC / DCDC
+('OBC-11KW-AC',   '11 kW AC On-Board Charger',         (SELECT category_id FROM dim_component_category WHERE category_code='OBC'),    'PCS',   4.8,   280.00,   420.00, TRUE,  'MASS', '8504401990'),
+('DCDC-1500W-48', 'DC-DC Converter 1500W 48V',         (SELECT category_id FROM dim_component_category WHERE category_code='DCDC'),   'PCS',   1.9,   125.00,   188.00, FALSE, 'MASS', '8504401990'),
+-- ECU
+('VCU-EV-GEN4',   'Vehicle Control Unit Gen4',         (SELECT category_id FROM dim_component_category WHERE category_code='ECU'),    'PCS',   0.8,   420.00,   630.00, FALSE, 'MASS', '8537109900'),
+('MCU-MOTOR-V3',  'Motor Control Unit V3',              (SELECT category_id FROM dim_component_category WHERE category_code='ECU'),    'PCS',   0.6,   185.00,   278.00, FALSE, 'MASS', '8537109900'),
+-- 底盘结构
+('FRAME-AL-FRONT','Front Aluminum Crash Frame',         (SELECT category_id FROM dim_component_category WHERE category_code='CHASSIS'),'PCS',  28.0,   180.00,   270.00, FALSE, 'MASS', '8302300000'),
+('TRAY-BAT-AL',   'Battery Tray Aluminum Extrusion',   (SELECT category_id FROM dim_component_category WHERE category_code='CHASSIS'),'PCS',  22.0,   210.00,   315.00, FALSE, 'MASS', '7616999000');
 
-INSERT INTO bom_header (bom_code, parent_component_id, bom_version, effective_from, is_current, created_by) VALUES
-('BOM-BAT100',   (SELECT component_id FROM dim_component WHERE component_code='BAT-100KWH'), '1.0', '2024-01-01', TRUE, 'ENG'),
-('BOM-EDU200',   (SELECT component_id FROM dim_component WHERE component_code='EDU-200KW'),  '1.0', '2024-01-01', TRUE, 'ENG'),
-('BOM-MOD-LFP',  (SELECT component_id FROM dim_component WHERE component_code='BAT-MOD-LFP'),'1.0', '2024-01-01', TRUE, 'ENG'),
-('BOM-MOD-NCM',  (SELECT component_id FROM dim_component WHERE component_code='BAT-MOD-NCM'),'1.0', '2024-01-01', TRUE, 'ENG');
+INSERT INTO bom_header (bom_code, parent_component_id, bom_version, effective_from, is_current) VALUES
+('BOM-BP100-V2',  (SELECT component_id FROM dim_component WHERE component_code='BP-100-NMC'), '2.0', '2023-01-01', TRUE),
+('BOM-BP075-V2',  (SELECT component_id FROM dim_component WHERE component_code='BP-075-LFP'), '2.0', '2023-01-01', TRUE),
+('BOM-BP050-V1',  (SELECT component_id FROM dim_component WHERE component_code='BP-050-LFP'), '1.0', '2022-06-01', TRUE),
+('BOM-BP120-V1',  (SELECT component_id FROM dim_component WHERE component_code='BP-120-NMC'), '1.0', '2024-01-01', TRUE),
+('BOM-BM-NMC-V1', (SELECT component_id FROM dim_component WHERE component_code='BM-NMC-12S'), '1.0', '2022-01-01', TRUE),
+('BOM-BM-LFP-V1', (SELECT component_id FROM dim_component WHERE component_code='BM-LFP-16S'), '1.0', '2022-01-01', TRUE);
 
-INSERT INTO bom_item (bom_id, child_component_id, qty_per_parent, scrap_rate) VALUES
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BAT100'),  (SELECT component_id FROM dim_component WHERE component_code='BAT-MOD-LFP'), 20, 0.002),
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BAT100'),  (SELECT component_id FROM dim_component WHERE component_code='BMS-MASTER'),  1,  0.001),
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BAT100'),  (SELECT component_id FROM dim_component WHERE component_code='BMS-SLAVE'),   16, 0.001),
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BAT100'),  (SELECT component_id FROM dim_component WHERE component_code='COOL-BATT'),   1,  0.001),
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-EDU200'),  (SELECT component_id FROM dim_component WHERE component_code='MOTOR-PM200'), 1,  0.001),
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-EDU200'),  (SELECT component_id FROM dim_component WHERE component_code='INV-SIC800'),  1,  0.001),
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-EDU200'),  (SELECT component_id FROM dim_component WHERE component_code='GBX-2SPD'),    1,  0.001),
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-MOD-LFP'), (SELECT component_id FROM dim_component WHERE component_code='CELL-LFP'),   24, 0.003),
-((SELECT bom_id FROM bom_header WHERE bom_code='BOM-MOD-NCM'), (SELECT component_id FROM dim_component WHERE component_code='CELL-NCM'),   240,0.003);
+INSERT INTO bom_item (bom_id, child_component_id, qty_per_parent, item_seq, scrap_rate) VALUES
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP100-V2'), (SELECT component_id FROM dim_component WHERE component_code='BM-NMC-12S'), 16, 10, 0.002),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP100-V2'), (SELECT component_id FROM dim_component WHERE component_code='BMS-96S-PRO'),  1,  20, 0.001),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP100-V2'), (SELECT component_id FROM dim_component WHERE component_code='CHL-LIQUID-7L'), 2, 30, 0.003),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP100-V2'), (SELECT component_id FROM dim_component WHERE component_code='TRAY-BAT-AL'),   1, 40, 0.002),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP100-V2'), (SELECT component_id FROM dim_component WHERE component_code='VCU-EV-GEN4'),   1, 50, 0.001),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP075-V2'), (SELECT component_id FROM dim_component WHERE component_code='BM-LFP-16S'),  12, 10, 0.002),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP075-V2'), (SELECT component_id FROM dim_component WHERE component_code='BMS-48S-STD'),   1, 20, 0.001),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP075-V2'), (SELECT component_id FROM dim_component WHERE component_code='CHL-LIQUID-7L'), 2, 30, 0.003),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP075-V2'), (SELECT component_id FROM dim_component WHERE component_code='TRAY-BAT-AL'),   1, 40, 0.002),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP050-V1'), (SELECT component_id FROM dim_component WHERE component_code='BM-LFP-16S'),   8, 10, 0.002),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP050-V1'), (SELECT component_id FROM dim_component WHERE component_code='BMS-48S-STD'),   1, 20, 0.001),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP050-V1'), (SELECT component_id FROM dim_component WHERE component_code='CHL-LIQUID-7L'), 1, 30, 0.003),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP120-V1'), (SELECT component_id FROM dim_component WHERE component_code='BM-NMC-12S'), 20, 10, 0.002),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP120-V1'), (SELECT component_id FROM dim_component WHERE component_code='BMS-96S-PRO'),  1, 20, 0.001),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP120-V1'), (SELECT component_id FROM dim_component WHERE component_code='CHL-LIQUID-7L'), 3, 30, 0.003),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BP120-V1'), (SELECT component_id FROM dim_component WHERE component_code='TRAY-BAT-AL'),   1, 40, 0.002),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BM-NMC-V1'), (SELECT component_id FROM dim_component WHERE component_code='CELL-NMC-21700'), 48, 10, 0.003),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BM-NMC-V1'), (SELECT component_id FROM dim_component WHERE component_code='MCU-MOTOR-V3'),   1,  20, 0.001),
+((SELECT bom_id FROM bom_header WHERE bom_code='BOM-BM-LFP-V1'), (SELECT component_id FROM dim_component WHERE component_code='CELL-LFP-280AH'), 32, 10, 0.002);
 
 INSERT INTO dim_raw_material (material_code, material_name, category, uom, commodity_ticker, primary_source_country_id) VALUES
-('MAT-LI2CO3',  'Lithium Carbonate 99.5%',    'Lithium',    'MT', 'LIT-CN',  (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
-('MAT-LIOH',    'Lithium Hydroxide 56.5%',    'Lithium',    'MT', 'LIOH-CN', (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
-('MAT-NI',      'Nickel Briquette 99.8%',     'Nickel',     'MT', 'NI-LME',  (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
-('MAT-CO',      'Cobalt Metal 99.8%',         'Cobalt',     'MT', 'CO-LME',  (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
-('MAT-MN',      'Manganese Flake 99.7%',      'Manganese',  'MT', 'MN-CN',   (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
-('MAT-CU',      'Copper Cathode 99.99%',      'Copper',     'MT', 'CU-LME',  (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
-('MAT-AL',      'Aluminum Ingot 99.7%',       'Aluminum',   'MT', 'AL-LME',  (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
-('MAT-GRAPH',   'Spherical Graphite 99.95%',  'Graphite',   'MT', 'GPH-CN',  (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
-('MAT-ND',      'Neodymium Oxide 99.5%',      'Rare Earth', 'MT', 'ND-CN',   (SELECT country_id FROM geo.dim_country WHERE country_code='CN'));
+('LCE',    'Lithium Carbonate Equivalent',   '锂',  'MT', 'LCE',    (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
+('NICKEL', 'Nickel (Class 1)',               '镍',  'MT', 'NI-LME', (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
+('COBALT', 'Cobalt Metal',                   '钴',  'MT', 'CO-LME', (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
+('COPPER', 'Copper Cathode',                 '铜',  'MT', 'CU-LME', (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
+('ALUM',   'Primary Aluminum',              '铝',  'MT', 'AL-LME', (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
+('SILICON','Silicon Metal 98%',              '硅',  'MT', 'SI-CME', (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
+('MANG',   'Manganese Metal',               '锰',  'MT', 'MN-CME', (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
+('IRON',   'Iron Ore 62% Fe',               '铁',  'MT', 'IO-DCE', (SELECT country_id FROM geo.dim_country WHERE country_code='CN')),
+('RARE_E', 'Rare Earth Mixed Oxide (NdPr)', '稀土','MT', 'NDPR',   (SELECT country_id FROM geo.dim_country WHERE country_code='CN'));
 
 INSERT INTO component_material_usage (component_id, material_id, usage_kg_per_unit) VALUES
-((SELECT component_id FROM dim_component WHERE component_code='CELL-LFP'),  (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-LI2CO3'), 0.65),
-((SELECT component_id FROM dim_component WHERE component_code='CELL-LFP'),  (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-CU'),     0.15),
-((SELECT component_id FROM dim_component WHERE component_code='CELL-LFP'),  (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-AL'),     0.30),
-((SELECT component_id FROM dim_component WHERE component_code='CELL-LFP'),  (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-GRAPH'),  0.80),
-((SELECT component_id FROM dim_component WHERE component_code='CELL-NCM'),  (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-LIOH'),   0.12),
-((SELECT component_id FROM dim_component WHERE component_code='CELL-NCM'),  (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-NI'),     0.04),
-((SELECT component_id FROM dim_component WHERE component_code='CELL-NCM'),  (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-CO'),     0.02),
-((SELECT component_id FROM dim_component WHERE component_code='CELL-NCM'),  (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-MN'),     0.01),
-((SELECT component_id FROM dim_component WHERE component_code='MOTOR-PM200'), (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-ND'),   1.80),
-((SELECT component_id FROM dim_component WHERE component_code='MOTOR-PM200'), (SELECT material_id FROM dim_raw_material WHERE material_code='MAT-CU'),   8.50);
+((SELECT component_id FROM dim_component WHERE component_code='CELL-NMC-21700'), (SELECT material_id FROM dim_raw_material WHERE material_code='LCE'),    0.0020),
+((SELECT component_id FROM dim_component WHERE component_code='CELL-NMC-21700'), (SELECT material_id FROM dim_raw_material WHERE material_code='NICKEL'),  0.0180),
+((SELECT component_id FROM dim_component WHERE component_code='CELL-NMC-21700'), (SELECT material_id FROM dim_raw_material WHERE material_code='COBALT'),  0.0040),
+((SELECT component_id FROM dim_component WHERE component_code='CELL-NMC-21700'), (SELECT material_id FROM dim_raw_material WHERE material_code='COPPER'),  0.0060),
+((SELECT component_id FROM dim_component WHERE component_code='CELL-LFP-280AH'), (SELECT material_id FROM dim_raw_material WHERE material_code='LCE'),    0.0120),
+((SELECT component_id FROM dim_component WHERE component_code='CELL-LFP-280AH'), (SELECT material_id FROM dim_raw_material WHERE material_code='IRON'),   0.2500),
+((SELECT component_id FROM dim_component WHERE component_code='CELL-LFP-280AH'), (SELECT material_id FROM dim_raw_material WHERE material_code='COPPER'),  0.0350),
+((SELECT component_id FROM dim_component WHERE component_code='CELL-NMC-4680'),  (SELECT material_id FROM dim_raw_material WHERE material_code='LCE'),    0.0090),
+((SELECT component_id FROM dim_component WHERE component_code='CELL-NMC-4680'),  (SELECT material_id FROM dim_raw_material WHERE material_code='NICKEL'),  0.0780),
+((SELECT component_id FROM dim_component WHERE component_code='MTR-200KW-PMSM'), (SELECT material_id FROM dim_raw_material WHERE material_code='RARE_E'), 1.2000),
+((SELECT component_id FROM dim_component WHERE component_code='MTR-200KW-PMSM'), (SELECT material_id FROM dim_raw_material WHERE material_code='COPPER'),  8.5000),
+((SELECT component_id FROM dim_component WHERE component_code='MTR-150KW-PMSM'), (SELECT material_id FROM dim_raw_material WHERE material_code='RARE_E'), 0.9000),
+((SELECT component_id FROM dim_component WHERE component_code='MTR-150KW-PMSM'), (SELECT material_id FROM dim_raw_material WHERE material_code='COPPER'),  6.8000),
+((SELECT component_id FROM dim_component WHERE component_code='TRAY-BAT-AL'),    (SELECT material_id FROM dim_raw_material WHERE material_code='ALUM'),   18.0000),
+((SELECT component_id FROM dim_component WHERE component_code='FRAME-AL-FRONT'), (SELECT material_id FROM dim_raw_material WHERE material_code='ALUM'),   22.0000);
