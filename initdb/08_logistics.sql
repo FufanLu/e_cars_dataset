@@ -42,7 +42,7 @@ CREATE TABLE fact_trade_lane (
     carrier         VARCHAR(100),
     created_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  fact_trade_lane IS '贸易航线/运输路线主数据；Tesla上海→欧洲滚装船航线';
+COMMENT ON TABLE  fact_trade_lane IS '贸易航线/运输路线主数据；EV上海→欧洲滚装船航线';
 COMMENT ON COLUMN fact_trade_lane.transport_mode IS '运输方式：SEA(海运)/AIR(空运)/RAIL(铁路)/ROAD(公路)/MULTIMODAL(多式联运)';
 COMMENT ON COLUMN fact_trade_lane.transit_days IS '运输天数';
 COMMENT ON COLUMN fact_trade_lane.base_rate_usd_per_kg IS '基准运费率（USD/kg）';

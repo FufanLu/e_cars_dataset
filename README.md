@@ -1,6 +1,6 @@
 # EV Parts Lakehouse — Global EV Manufacturing Analytics Database
 
-A PostgreSQL 16 database for **text2ontology / NL2SQL / AI analytics**, modeling Tesla-style vertically integrated manufacturing — from raw materials to vehicle delivery.
+A PostgreSQL 16 database for **text2ontology / NL2SQL / AI analytics**, modeling a vertically integrated EV manufacturing supply chain — from raw materials to vehicle delivery.
 
 ---
 

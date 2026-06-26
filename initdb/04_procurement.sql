@@ -1,5 +1,5 @@
 -- =============================================================================
--- Tesla OEM Lakehouse - procurement schema: 供应商 / 采购订单 / 来料质量
+-- EV OEM Lakehouse - procurement schema: 供应商 / 采购订单 / 来料质量
 -- PostgreSQL 16
 -- =============================================================================
 
@@ -23,11 +23,11 @@ CREATE TABLE dim_supplier (
     risk_rating     VARCHAR(10)  CHECK (risk_rating IN ('LOW','MEDIUM','HIGH','CRITICAL')),
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  dim_supplier IS '供应商主数据；tier=1直供Tesla，tier=2二级供应商';
+COMMENT ON TABLE  dim_supplier IS '供应商主数据；tier=1直供EV，tier=2二级供应商';
 COMMENT ON COLUMN dim_supplier.supplier_code IS '供应商代码，如SUP-CATL(宁德时代)、SUP-TSMC(台积电)';
-COMMENT ON COLUMN dim_supplier.tier IS '供应商层级: 1=直供Tesla, 2=二级物料, 3=原材料';
+COMMENT ON COLUMN dim_supplier.tier IS '供应商层级: 1=直供EV, 2=二级物料, 3=原材料';
 COMMENT ON COLUMN dim_supplier.category_id IS '供应品类，关联dim_component_category';
-COMMENT ON COLUMN dim_supplier.payment_terms_days IS '账期（天），Tesla通常30-60天';
+COMMENT ON COLUMN dim_supplier.payment_terms_days IS '账期（天），EV通常30-60天';
 COMMENT ON COLUMN dim_supplier.is_strategic IS '是否战略供应商（电池/FSD芯片/稀土等关键物料）';
 COMMENT ON COLUMN dim_supplier.risk_rating IS '供应风险评级: LOW/MEDIUM/HIGH/CRITICAL';
 
@@ -44,7 +44,7 @@ CREATE TABLE fact_purchase_order (
     incoterm        VARCHAR(10),
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  fact_purchase_order IS '采购订单头表；Tesla主要采购电芯/原材料/芯片/玻璃等外购件';
+COMMENT ON TABLE  fact_purchase_order IS '采购订单头表；EV主要采购电芯/原材料/芯片/玻璃等外购件';
 COMMENT ON COLUMN fact_purchase_order.po_number IS '采购单号，格式PRC-YYYYMMDD-SUPPLIER';
 COMMENT ON COLUMN fact_purchase_order.supplier_id IS '供应商ID，关联dim_supplier';
 COMMENT ON COLUMN fact_purchase_order.factory_id IS '收货工厂ID，关联dim_factory';
@@ -127,7 +127,7 @@ COMMENT ON COLUMN fact_supplier_quality.rejection_reason IS '退货原因：DIME
 CREATE INDEX idx_squal_supplier ON fact_supplier_quality(supplier_id);
 
 -- =============================================================================
--- SEED DATA — Tesla真实供应商 (12家)
+-- SEED DATA — EV真实供应商 (12家)
 -- =============================================================================
 
 INSERT INTO dim_supplier (supplier_code, supplier_name, country_id, tier, category_id, payment_terms_days, currency_id, is_strategic, risk_rating) VALUES

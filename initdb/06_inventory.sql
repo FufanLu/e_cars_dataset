@@ -1,6 +1,6 @@
 -- =============================================================================
--- Tesla OEM Lakehouse - inventory schema: 仓库 / 在途 / 线边仓
--- 特斯拉直销模式: 零成品库存(build-to-order), 最小化原材料库存(JIT), 无经销商库存
+-- EV OEM Lakehouse - inventory schema: 仓库 / 在途 / 线边仓
+-- 电动车直销模式: 零成品库存(build-to-order), 最小化原材料库存(JIT), 无经销商库存
 -- PostgreSQL 16
 -- =============================================================================
 
@@ -20,7 +20,7 @@ CREATE TABLE dim_warehouse (
     capacity_sqm    NUMERIC(10,2),
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  dim_warehouse IS '仓库主数据；Tesla无FG仓(成品即发运)，含原料/在制/线边/在途/售后/退货';
+COMMENT ON TABLE  dim_warehouse IS '仓库主数据；EV无FG仓(成品即发运)，含原料/在制/线边/在途/售后/退货';
 COMMENT ON COLUMN dim_warehouse.warehouse_code IS '仓库代码，如FMT-RAW(Fremont原料仓)、TXS-LINE(德州线边)';
 COMMENT ON COLUMN dim_warehouse.factory_id IS '所属工厂，售后仓可为NULL';
 COMMENT ON COLUMN dim_warehouse.warehouse_type IS '仓库类型: RAW=原料, WIP=在制, LINE_SIDE=总装线边, TRANSIT=在途, SERVICE=售后件, RETURN=退货';
@@ -38,7 +38,7 @@ CREATE TABLE fact_inventory_snapshot (
     inventory_value_usd NUMERIC(18,4),
     UNIQUE (snapshot_date, warehouse_id, component_id)
 );
-COMMENT ON TABLE  fact_inventory_snapshot IS '月末库存快照；Tesla成品库存极低(通常<7天), 主要是原料和WIP';
+COMMENT ON TABLE  fact_inventory_snapshot IS '月末库存快照；EV成品库存极低(通常<7天), 主要是原料和WIP';
 COMMENT ON COLUMN fact_inventory_snapshot.snapshot_date IS '快照日期（月末）';
 COMMENT ON COLUMN fact_inventory_snapshot.warehouse_id IS '仓库ID';
 COMMENT ON COLUMN fact_inventory_snapshot.component_id IS '零部件/整车ID';
@@ -82,7 +82,7 @@ CREATE TABLE fact_stockout_event (
     root_cause      VARCHAR(50),
     created_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  fact_stockout_event IS '断货事件；Tesla因JIT模式对断货极其敏感，直接影响产线停线';
+COMMENT ON TABLE  fact_stockout_event IS '断货事件；EV因JIT模式对断货极其敏感，直接影响产线停线';
 COMMENT ON COLUMN fact_stockout_event.stockout_days IS '断货持续天数';
 COMMENT ON COLUMN fact_stockout_event.lost_demand_qty IS '因断货损失的交付数量';
 COMMENT ON COLUMN fact_stockout_event.lost_revenue_est_usd IS '因断货损失的预估收入（USD）';

@@ -1,6 +1,6 @@
 -- =============================================================================
--- Tesla OEM Lakehouse - sales schema: 直销 / 消费者 / 订单
--- Tesla直销模式: 无经销商、无返利、无大客户协议价、全球统一定价(仅按国家微调)
+-- EV OEM Lakehouse - sales schema: 直销 / 消费者 / 订单
+-- EV直销模式: 无经销商、无返利、无大客户协议价、全球统一定价(仅按国家微调)
 -- 删除的B2B表: fact_country_price_list, fact_price_agreement, fact_rebate, fact_volume_discount
 -- PostgreSQL 16
 -- =============================================================================
@@ -23,11 +23,11 @@ CREATE TABLE dim_customer (
     is_strategic    BOOLEAN      NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  dim_customer IS 'Tesla终端客户；CONSUMER=个人直销, FLEET=企业车队, LEASE=租赁公司, GOVT=政府采购';
+COMMENT ON TABLE  dim_customer IS 'EV终端客户；CONSUMER=个人直销, FLEET=企业车队, LEASE=租赁公司, GOVT=政府采购';
 COMMENT ON COLUMN dim_customer.customer_code IS '客户代码，个人消费者使用CUST-NNNNN格式';
 COMMENT ON COLUMN dim_customer.customer_type IS '客户类型: CONSUMER(个人)/FLEET(企业车队)/LEASE(租赁)/GOVT(政府)';
 COMMENT ON COLUMN dim_customer.credit_limit_usd IS '信用额度（USD），个人消费者为0';
-COMMENT ON COLUMN dim_customer.payment_terms_days IS '付款条件(天)，Tesla直销通常为0(全款预付)';
+COMMENT ON COLUMN dim_customer.payment_terms_days IS '付款条件(天)，EV直销通常为0(全款预付)';
 COMMENT ON COLUMN dim_customer.is_strategic IS '是否战略客户（大企业车队/政府采购）';
 
 CREATE TABLE dim_sales_channel (
@@ -38,10 +38,10 @@ CREATE TABLE dim_sales_channel (
     commission_rate NUMERIC(6,4) NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  dim_sales_channel IS 'Tesla销售渠道；DIRECT=官网直销, FLEET=企业批量, GOVT_TENDER=政府采购, ONLINE=线上';
+COMMENT ON TABLE  dim_sales_channel IS 'EV销售渠道；DIRECT=官网直销, FLEET=企业批量, GOVT_TENDER=政府采购, ONLINE=线上';
 COMMENT ON COLUMN dim_sales_channel.channel_code IS '渠道代码：DIRECT/FLEET/GOVT_SALE/REFERRAL';
 COMMENT ON COLUMN dim_sales_channel.channel_type IS '渠道类型：DIRECT/ONLINE/FLEET/GOVT_TENDER';
-COMMENT ON COLUMN dim_sales_channel.commission_rate IS '渠道佣金率，Tesla直销为0，推荐计划0.5%';
+COMMENT ON COLUMN dim_sales_channel.commission_rate IS '渠道佣金率，EV直销为0，推荐计划0.5%';
 
 CREATE TABLE fact_sales_order (
     so_id           BIGSERIAL PRIMARY KEY,
@@ -65,7 +65,7 @@ CREATE TABLE fact_sales_order (
     incoterm        VARCHAR(10),
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  fact_sales_order IS 'Tesla车辆销售订单；每订单=1辆整车(唯一VIN)，直销无中间商';
+COMMENT ON TABLE  fact_sales_order IS 'EV车辆销售订单；每订单=1辆整车(唯一VIN)，直销无中间商';
 COMMENT ON COLUMN fact_sales_order.so_number IS '销售订单号，格式SO-YYYYMMDD-NNNNN';
 COMMENT ON COLUMN fact_sales_order.order_date IS '客户下单日期（官网订购）';
 COMMENT ON COLUMN fact_sales_order.requested_delivery_date IS '客户期望交付日期';
@@ -73,10 +73,10 @@ COMMENT ON COLUMN fact_sales_order.actual_delivery_date IS '实际交付日期';
 COMMENT ON COLUMN fact_sales_order.ship_from_factory_id IS '发货工厂（Gigafactory）';
 COMMENT ON COLUMN fact_sales_order.ship_to_country_id IS '目的国';
 COMMENT ON COLUMN fact_sales_order.total_gross_revenue IS '车辆总售价（USD）= 车价+选装';
-COMMENT ON COLUMN fact_sales_order.total_discount IS '折扣总额（USD），Tesla直销通常为0';
+COMMENT ON COLUMN fact_sales_order.total_discount IS '折扣总额（USD），EV直销通常为0';
 COMMENT ON COLUMN fact_sales_order.total_net_revenue IS '净收入= 总售价-折扣';
 COMMENT ON COLUMN fact_sales_order.total_std_material_cost IS '标准材料成本（USD）';
-COMMENT ON COLUMN fact_sales_order.total_freight_cost IS '运费（USD）：滚装船/板车/Tesla自有物流';
+COMMENT ON COLUMN fact_sales_order.total_freight_cost IS '运费（USD）：滚装船/板车/EV自有物流';
 COMMENT ON COLUMN fact_sales_order.total_tariff_cost IS '关税（USD）：CN→US 25%, CN→EU 17%等';
 COMMENT ON COLUMN fact_sales_order.vin IS '17位VIN码，唯一标识一辆整车';
 COMMENT ON COLUMN fact_sales_order.status IS '订单状态: RESERVED(预订)/CONFIRMED(确认)/IN_PRODUCTION(排产)/IN_TRANSIT(在途)/DELIVERED(已交付)/CANCELLED(取消)';
@@ -119,7 +119,7 @@ CREATE INDEX idx_soi_component ON fact_sales_order_item(component_id);
 -- =============================================================================
 
 INSERT INTO dim_sales_channel (channel_code, channel_name, channel_type, commission_rate) VALUES
-('DIRECT',  'Tesla.com 官网直销',     'DIRECT',      0),
+('DIRECT',  'EV.com 官网直销',     'DIRECT',      0),
 ('FLEET',   '企业/租车公司批量采购',  'FLEET',       0),
 ('GOVT_SALE','政府采购',              'GOVT_TENDER', 0),
 ('REFERRAL', '车主推荐',              'ONLINE',      0.005);

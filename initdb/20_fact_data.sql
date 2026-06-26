@@ -1,7 +1,7 @@
 -- =============================================================================
--- Tesla OEM Lakehouse - Fact Tables Bulk Data (generate_series)
+-- EV OEM Lakehouse - Fact Tables Bulk Data (generate_series)
 -- PostgreSQL 16
--- Tesla特征: 直销无库存, 垂直整合制造, 全球Gigafactory
+-- EV特征: 直销无库存, 垂直整合制造, 全球Gigafactory
 -- search_path 覆盖所有schema
 -- =============================================================================
 
@@ -191,7 +191,7 @@ WHERE po.status = 'COMPLETED';
 
 -- =============================================================================
 -- FACT: 车辆销售订单 (~3000条, 每条=1辆整车, 带VIN)
--- Tesla直销: 官网下单→排产→交付
+-- EV直销: 官网下单→排产→交付
 -- =============================================================================
 
 INSERT INTO fact_sales_order (
@@ -370,7 +370,7 @@ CROSS JOIN (VALUES (62.0, 70.0, 68.0)) AS scores(base_env, base_soc, base_gov);
 UPDATE fact_supplier_esg_score SET overall_score = ROUND(((env_score + social_score + governance_score)/3)::NUMERIC, 2);
 
 -- =============================================================================
--- FACT: 库存快照 (Tesla模式: 极小成品库存, 主要为原材料和WIP)
+-- FACT: 库存快照 (EV模式: 极小成品库存, 主要为原材料和WIP)
 -- =============================================================================
 
 INSERT INTO fact_inventory_snapshot (snapshot_date, warehouse_id, component_id, qty_on_hand, qty_reserved, avg_cost_usd, inventory_value_usd)
@@ -648,7 +648,7 @@ JOIN fact_trade_lane tl ON tl.lane_id = s.lane_id
 LEFT JOIN fact_freight_cost fc ON fc.so_id = s.so_id;
 
 -- =============================================================================
--- FACT: 断货事件 (Tesla JIT停线风险)
+-- FACT: 断货事件 (EV JIT停线风险)
 -- =============================================================================
 
 INSERT INTO fact_stockout_event (event_date, warehouse_id, component_id, stockout_days, lost_demand_qty, lost_revenue_est_usd, root_cause)
@@ -715,7 +715,7 @@ BEGIN
             RAISE NOTICE '[%] % => ~% rows', schema_name, tbl, cnt;
         END LOOP;
     END LOOP;
-    RAISE NOTICE '=== Tesla OEM Lakehouse: ~% total rows ===', total;
+    RAISE NOTICE '=== EV OEM Lakehouse: ~% total rows ===', total;
     RAISE NOTICE '=== Data loaded. Ready for text2ontology / NL2SQL analysis. ===';
 END;
 $$;

@@ -94,7 +94,7 @@ INSERT INTO dim_country (country_code, country_name, region_id, currency_id, vat
 ('VN', 'Vietnam',        (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='VND'), 0.1000, 0.2000, FALSE),
 ('SG', 'Singapore',      (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='SGD'), 0.0900, 0.1700, FALSE),
 
--- 扩展国家 (Tesla主要市场 + 供应链来源国)
+-- 扩展国家 (EV主要市场 + 供应链来源国)
 ('TW', 'Taiwan',         (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='TWD'), 0.0500, 0.2000, FALSE),
 ('CH', 'Switzerland',    (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='CHF'), 0.0770, 0.1450, FALSE),
 ('FI', 'Finland',        (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='EUR'), 0.2400, 0.2000, TRUE),

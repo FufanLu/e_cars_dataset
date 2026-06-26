@@ -1,5 +1,5 @@
 -- =============================================================================
--- Tesla OEM Lakehouse - product schema: 整车 / 核心零部件 / BOM / 原材料
+-- EV OEM Lakehouse - product schema: 整车 / 核心零部件 / BOM / 原材料
 -- PostgreSQL 16
 -- =============================================================================
 
@@ -192,7 +192,7 @@ INSERT INTO dim_component (component_code, component_name, category_id, uom, wei
 ('CAM-5MP',    '500万像素自动驾驶摄像头',   (SELECT category_id FROM dim_component_category WHERE category_code='CAMERA'),   'PCS', 0.15, 45, NULL, FALSE, 'MASS', '8525893000', 'BUY'),
 
 -- 热管理
-('HEATPUMP-V2','Tesla 热泵系统 V2',       (SELECT category_id FROM dim_component_category WHERE category_code='HEATPUMP'), 'PCS', 14, 520, NULL, FALSE, 'MASS', '8415819000', 'SELF'),
+('HEATPUMP-V2','EV 热泵系统 V2',       (SELECT category_id FROM dim_component_category WHERE category_code='HEATPUMP'), 'PCS', 14, 520, NULL, FALSE, 'MASS', '8415819000', 'SELF'),
 ('OCTOVALVE',  '八通阀超级歧管',          (SELECT category_id FROM dim_component_category WHERE category_code='COOLING'),  'PCS', 2.1, 85, NULL, FALSE, 'MASS', '8481809000', 'SELF'),
 
 -- 低压电子

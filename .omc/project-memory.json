@@ -1,0 +1,172 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1782437550007,
+  "projectRoot": "/home/redeemer/e_cars_dataset",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 2,
+      "lastAccessed": 1782437550002,
+      "keyFiles": [
+        "er.md",
+        "sample_questions.md"
+      ]
+    },
+    "initdb": {
+      "path": "initdb",
+      "purpose": null,
+      "fileCount": 14,
+      "lastAccessed": 1782437550003,
+      "keyFiles": [
+        "00_extensions.sql",
+        "01_geo.sql",
+        "02_product.sql",
+        "03_production.sql",
+        "04_procurement.sql"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "initdb/20_fact_data.sql",
+      "accessCount": 45,
+      "lastAccessed": 1782454608405,
+      "type": "file"
+    },
+    {
+      "path": "initdb/09_esg.sql",
+      "accessCount": 12,
+      "lastAccessed": 1782444749458,
+      "type": "file"
+    },
+    {
+      "path": "initdb/03_production.sql",
+      "accessCount": 11,
+      "lastAccessed": 1782444560773,
+      "type": "file"
+    },
+    {
+      "path": "initdb/04_procurement.sql",
+      "accessCount": 8,
+      "lastAccessed": 1782444594898,
+      "type": "file"
+    },
+    {
+      "path": "initdb/11_views.sql",
+      "accessCount": 7,
+      "lastAccessed": 1782460216830,
+      "type": "file"
+    },
+    {
+      "path": "initdb/05_sales.sql",
+      "accessCount": 6,
+      "lastAccessed": 1782444625227,
+      "type": "file"
+    },
+    {
+      "path": "initdb/06_inventory.sql",
+      "accessCount": 6,
+      "lastAccessed": 1782444651887,
+      "type": "file"
+    },
+    {
+      "path": "initdb/10_aftersales.sql",
+      "accessCount": 6,
+      "lastAccessed": 1782444767062,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 6,
+      "lastAccessed": 1782463036672,
+      "type": "file"
+    },
+    {
+      "path": "initdb/07_finance.sql",
+      "accessCount": 5,
+      "lastAccessed": 1782444674264,
+      "type": "file"
+    },
+    {
+      "path": "initdb/08_logistics.sql",
+      "accessCount": 5,
+      "lastAccessed": 1782444697985,
+      "type": "file"
+    },
+    {
+      "path": "initdb/01_geo.sql",
+      "accessCount": 3,
+      "lastAccessed": 1782439604277,
+      "type": "file"
+    },
+    {
+      "path": "initdb/02_product.sql",
+      "accessCount": 2,
+      "lastAccessed": 1782439145463,
+      "type": "file"
+    },
+    {
+      "path": "initdb/00_extensions.sql",
+      "accessCount": 2,
+      "lastAccessed": 1782439309545,
+      "type": "file"
+    },
+    {
+      "path": "docker-compose.yml",
+      "accessCount": 2,
+      "lastAccessed": 1782449968002,
+      "type": "file"
+    },
+    {
+      "path": "docs/er.md",
+      "accessCount": 1,
+      "lastAccessed": 1782437789644,
+      "type": "file"
+    },
+    {
+      "path": "docs/sample_questions.md",
+      "accessCount": 1,
+      "lastAccessed": 1782437790080,
+      "type": "file"
+    },
+    {
+      "path": "initdb/30_tesla_oem_data.sql",
+      "accessCount": 1,
+      "lastAccessed": 1782439024465,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

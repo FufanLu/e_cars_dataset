@@ -1,5 +1,5 @@
 -- =============================================================================
--- Tesla OEM Lakehouse - Cross-Schema Views (in public schema)
+-- EV OEM Lakehouse - Cross-Schema Views (in public schema)
 -- PostgreSQL 16
 -- =============================================================================
 
@@ -43,7 +43,7 @@ JOIN geo.dim_country  cp          ON cp.country_id = so.ship_to_country_id
 JOIN product.dim_component comp   ON comp.component_id = soi.component_id
 WHERE comp.is_finished_good = TRUE;
 
-COMMENT ON VIEW v_vehicle_gross_margin IS 'Tesla单车调整后毛利视图（含运费/关税全分摊），仅整车';
+COMMENT ON VIEW v_vehicle_gross_margin IS 'EV单车调整后毛利视图（含运费/关税全分摊），仅整车';
 
 -- =============================================================================
 -- VIEW: 供应商风险综合评分卡 (ESG + 质量 + 交期)
