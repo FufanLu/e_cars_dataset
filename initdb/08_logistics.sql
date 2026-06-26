@@ -21,7 +21,12 @@ CREATE TABLE fact_tariff_rate (
     notes           TEXT,
     UNIQUE (hs_code, from_country_id, to_country_id, effective_from)
 );
-COMMENT ON TABLE  fact_tariff_rate IS '关税税率表，按 HS Code + 贸易路线 + 时间段';
+COMMENT ON TABLE  fact_tariff_rate IS '关税税率表，按HS Code+贸易路线+时间段；整车HS8703800000';
+COMMENT ON COLUMN fact_tariff_rate.hs_code IS 'HS海关编码，整车8703800000，电池8507600090';
+COMMENT ON COLUMN fact_tariff_rate.from_country_id IS '出口国';
+COMMENT ON COLUMN fact_tariff_rate.to_country_id IS '进口国';
+COMMENT ON COLUMN fact_tariff_rate.tariff_rate_pct IS '关税税率（%）：CN→US 25%, CN→EU 17%';
+COMMENT ON COLUMN fact_tariff_rate.tariff_type IS '关税类型：MFN(最惠国)/FTA(自贸协定)/ANTI_DUMPING(反补贴)/PREFERENTIAL(优惠)/RETALIATORY(报复性)';
 CREATE INDEX idx_tariff_hs      ON fact_tariff_rate(hs_code);
 CREATE INDEX idx_tariff_route   ON fact_tariff_rate(from_country_id, to_country_id);
 
@@ -37,7 +42,11 @@ CREATE TABLE fact_trade_lane (
     carrier         VARCHAR(100),
     created_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE  fact_trade_lane IS '贸易航线/运输路线主数据';
+COMMENT ON TABLE  fact_trade_lane IS '贸易航线/运输路线主数据；Tesla上海→欧洲滚装船航线';
+COMMENT ON COLUMN fact_trade_lane.transport_mode IS '运输方式：SEA(海运)/AIR(空运)/RAIL(铁路)/ROAD(公路)/MULTIMODAL(多式联运)';
+COMMENT ON COLUMN fact_trade_lane.transit_days IS '运输天数';
+COMMENT ON COLUMN fact_trade_lane.base_rate_usd_per_kg IS '基准运费率（USD/kg）';
+COMMENT ON COLUMN fact_trade_lane.base_rate_usd_per_cbm IS '基准运费率（USD/m³）';
 CREATE INDEX idx_tl_route ON fact_trade_lane(from_country_id, to_country_id);
 
 CREATE TABLE fact_freight_cost (
@@ -55,6 +64,13 @@ CREATE TABLE fact_freight_cost (
     created_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
 COMMENT ON TABLE  fact_freight_cost IS '运费事实表，含运费+保险+装卸费';
+COMMENT ON COLUMN fact_freight_cost.so_id IS '关联销售订单';
+COMMENT ON COLUMN fact_freight_cost.weight_kg IS '货物重量（kg），整车约2000-3000kg';
+COMMENT ON COLUMN fact_freight_cost.volume_cbm IS '货物体积（m³）';
+COMMENT ON COLUMN fact_freight_cost.freight_amount_usd IS '海运费/陆运费（USD）';
+COMMENT ON COLUMN fact_freight_cost.insurance_amount_usd IS '运输保险（USD）';
+COMMENT ON COLUMN fact_freight_cost.handling_fee_usd IS '码头/装卸操作费（USD）';
+COMMENT ON COLUMN fact_freight_cost.total_logistics_cost_usd IS '物流总成本（USD）= 运费+保险+装卸';
 CREATE INDEX idx_fc_so   ON fact_freight_cost(so_id);
 CREATE INDEX idx_fc_date ON fact_freight_cost(shipment_date);
 
@@ -72,6 +88,14 @@ CREATE TABLE fact_shipping_order (
     created_at      TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
 COMMENT ON TABLE  fact_shipping_order IS '装运单/提单主数据，关联运费和销售订单';
+COMMENT ON COLUMN fact_shipping_order.shipping_no IS '装运号，格式SHP-YYYYMMDD-NNNNN';
+COMMENT ON COLUMN fact_shipping_order.so_id IS '关联销售订单';
+COMMENT ON COLUMN fact_shipping_order.lane_id IS '航线ID，关联fact_trade_lane';
+COMMENT ON COLUMN fact_shipping_order.ship_date IS '发运日期';
+COMMENT ON COLUMN fact_shipping_order.eta_date IS '预计到港日期';
+COMMENT ON COLUMN fact_shipping_order.actual_arrival_date IS '实际到港日期';
+COMMENT ON COLUMN fact_shipping_order.status IS '装运状态：BOOKED(已订舱)/IN_TRANSIT(在途)/ARRIVED(到港)/CLEARED(已清关)/DELIVERED(已交付)';
+COMMENT ON COLUMN fact_shipping_order.container_no IS '集装箱号';
 
 -- =============================================================================
 -- SEED DATA

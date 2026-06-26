@@ -68,7 +68,13 @@ INSERT INTO dim_currency (currency_code, currency_name, symbol, decimal_places) 
 ('PLN', 'Polish Zloty',       'zł', 2),
 ('MYR', 'Malaysian Ringgit',  'RM', 2),
 ('VND', 'Vietnamese Dong',    '₫',  0),
-('SGD', 'Singapore Dollar',   'S$', 2);
+('SGD', 'Singapore Dollar',   'S$', 2),
+('TWD', 'New Taiwan Dollar',  'NT$',2),
+('CHF', 'Swiss Franc',        'Fr', 2),
+('AUD', 'Australian Dollar',  'A$', 2),
+('CAD', 'Canadian Dollar',    'C$', 2),
+('NOK', 'Norwegian Krone',    'kr', 2),
+('SEK', 'Swedish Krona',      'kr', 2);
 
 INSERT INTO dim_country (country_code, country_name, region_id, currency_id, vat_rate, corporate_tax_rate, is_eu_member) VALUES
 ('CN', 'China',          (SELECT region_id FROM dim_region WHERE region_code='CHINA'), (SELECT currency_id FROM dim_currency WHERE currency_code='CNY'), 0.1300, 0.2500, FALSE),
@@ -86,4 +92,18 @@ INSERT INTO dim_country (country_code, country_name, region_id, currency_id, vat
 ('BR', 'Brazil',         (SELECT region_id FROM dim_region WHERE region_code='AMER'),  (SELECT currency_id FROM dim_currency WHERE currency_code='BRL'), 0.1200, 0.3400, FALSE),
 ('MY', 'Malaysia',       (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='MYR'), 0.0800, 0.2400, FALSE),
 ('VN', 'Vietnam',        (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='VND'), 0.1000, 0.2000, FALSE),
-('SG', 'Singapore',      (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='SGD'), 0.0900, 0.1700, FALSE);
+('SG', 'Singapore',      (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='SGD'), 0.0900, 0.1700, FALSE),
+
+-- 扩展国家 (Tesla主要市场 + 供应链来源国)
+('TW', 'Taiwan',         (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='TWD'), 0.0500, 0.2000, FALSE),
+('CH', 'Switzerland',    (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='CHF'), 0.0770, 0.1450, FALSE),
+('FI', 'Finland',        (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='EUR'), 0.2400, 0.2000, TRUE),
+('NL', 'Netherlands',    (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='EUR'), 0.2100, 0.2580, TRUE),
+('CL', 'Chile',          (SELECT region_id FROM dim_region WHERE region_code='AMER'),  (SELECT currency_id FROM dim_currency WHERE currency_code='USD'), 0.1900, 0.2700, FALSE),
+('ID', 'Indonesia',      (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='USD'), 0.1100, 0.2200, FALSE),
+('CD', 'DR Congo',       (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='USD'), 0.1600, 0.3000, FALSE),
+('SA', 'Saudi Arabia',   (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='USD'), 0.1500, 0.2000, FALSE),
+('AU', 'Australia',      (SELECT region_id FROM dim_region WHERE region_code='APAC'),  (SELECT currency_id FROM dim_currency WHERE currency_code='AUD'), 0.1000, 0.3000, FALSE),
+('NO', 'Norway',         (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='NOK'), 0.2500, 0.2200, FALSE),
+('SE', 'Sweden',         (SELECT region_id FROM dim_region WHERE region_code='EMEA'),  (SELECT currency_id FROM dim_currency WHERE currency_code='SEK'), 0.2500, 0.2060, TRUE),
+('CA', 'Canada',         (SELECT region_id FROM dim_region WHERE region_code='AMER'),  (SELECT currency_id FROM dim_currency WHERE currency_code='CAD'), 0.0500, 0.2679, FALSE);
