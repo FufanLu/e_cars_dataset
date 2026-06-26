@@ -1,192 +1,118 @@
-# EV Parts Lakehouse — 全球电动车零部件制造商经营分析数据库
+# EV Parts Lakehouse — Global EV Manufacturing Analytics Database
 
-一个用于 **text2ontology / NL2SQL / 数据分析** 场景的 PostgreSQL 16 数据库，模拟真实跨国电动车零部件制造企业的全链路业务数据（BOM、生产、供应商、销售、库存、财务、ESG、售后）。
+A PostgreSQL 16 database for **text2ontology / NL2SQL / AI analytics**, modeling Tesla-style vertically integrated manufacturing — from raw materials to vehicle delivery.
 
 ---
 
-## 快速启动
+## Quick Start
 
 ```bash
-# 1. 克隆 / 解压项目
-cd ev-parts-lakehouse
+cd e_cars_dataset
 
-# 2. 首次启动（自动建表 + 插入种子数据，约需 3-5 分钟）
+# First run (creates schemas + seed data, ~3-5 min)
 docker compose up -d
 
-# 3. 查看启动日志
+# Watch startup logs
 docker compose logs -f
 
-# 4. 等待 healthy 后连接验证
+# Verify connection
 docker exec -it ev_parts_db psql -U ev_user -d ev_parts -c "\dt"
 ```
 
-> **首次启动注意**：`initdb/` 中的三个 SQL 文件会按字母顺序执行（01→02→03），总计约 5-15 万行，在普通笔记本上约 3-5 分钟完成。
-
 ---
 
-## 连接信息
+## Connection
 
-| 参数 | 值 |
-|------|-----|
+| Parameter | Value |
+|-----------|-------|
 | Host | `localhost` |
-| Port | `5432` |
+| Port | `15432` |
 | Database | `ev_parts` |
 | User | `ev_user` |
 | Password | `ev_password` |
 
-**连接字符串**：
+**Connection string**:
 ```
-postgresql://ev_user:ev_password@localhost:5432/ev_parts
+postgresql://ev_user:ev_password@localhost:15432/ev_parts
 ```
 
 ---
 
-## 连接 text2ontology
+## Schema Overview
+
+10 business domains, 49 tables, 303 sales orders spanning 2023-01 to 2025-06.
+
+| Schema | Tables | Description |
+|--------|:------:|-------------|
+| **geo** | 3 | 28 countries, 21 currencies, 4 regions |
+| **product** | 7 | 8 vehicle models, 27 components, 14 raw materials, multi-level BOM |
+| **production** | 7 | 5 Gigafactories, 20 production lines, 20 process steps |
+| **procurement** | 5 | 12 suppliers (CATL/Panasonic/TSMC...), POs, quality, delivery |
+| **sales** | 4 | 500+ customers, direct sales, vehicle orders (VIN) |
+| **inventory** | 4 | 22 warehouses (raw/WIP/line-side/in-transit/aftermarket) |
+| **finance** | 4 | 12K+ exchange rate rows, interest rates, receivables aging |
+| **logistics** | 4 | Tariff rates, 4 trade lanes, freight costs |
+| **esg** | 8 | Scope 1/2/3 carbon, EU ETS carbon tax, supplier ESG scores |
+| **aftersales** | 3 | 12 failure modes, warranty claims, field failure PPM |
+
+---
+
+## Key Views
+
+| View | Purpose |
+|------|---------|
+| `v_vehicle_gross_margin` | Per-vehicle adjusted margin (freight + tariff included) |
+| `v_net_profit` | ALL-in net profit: revenue − material − manufacturing − freight − tariff − carbon tax + factory name + qty |
+| `v_supplier_risk_scorecard` | Supplier ESG + quality + delivery combined |
+| `v_factory_efficiency` | Per-factory per-line monthly yield, scrap rate, material cost |
+| `v_vehicle_carbon_footprint` | Per-vehicle carbon footprint by factory and year |
+| `v_supplier_delivery_scorecard` | On-time rate, avg days late, defect PPM per supplier |
+| `v_production_unit_cost` | Unit cost = (labor + material + overhead) / qty per order |
+
+---
+
+## Example Questions
+
+| # | Question | Key Tables |
+|---|----------|------------|
+| Q1 | Which factory has the lowest unit cost for Model Y? | `v_net_profit` GROUP BY `factory_name` |
+| Q2 | Selling to Germany vs US — where is net profit higher? | `v_net_profit` GROUP BY `ship_to_country` |
+| Q3 | Does higher freight cost eat into margin? | `v_net_profit` → `freight_cost` vs `net_profit_margin_pct` |
+| Q4 | Which suppliers have both low ESG scores and high defect PPM? | `v_supplier_risk_scorecard` |
+| Q5 | Shanghai → Europe: how much does tariff + freight eat into gross margin? | `v_vehicle_gross_margin` |
+| Q6 | Does higher batch size mean lower unit cost? (economies of scale) | `v_production_unit_cost` |
+| Q7 | Which country carries the heaviest carbon tax burden? | `v_net_profit` GROUP BY `ship_to_country` |
+| Q8 | How much does carbon tax impact net margin? (regression analysis) | `v_net_profit` → `carbon_tax` vs `net_profit_margin_pct` |
+
+---
+
+## File Structure
+
+```
+e_cars_dataset/
+├── docker-compose.yml
+├── initdb/
+│   ├── 00_extensions.sql
+│   ├── 01_geo.sql
+│   ├── 02_product.sql
+│   ├── 03_production.sql
+│   ├── 04_procurement.sql
+│   ├── 05_sales.sql
+│   ├── 06_inventory.sql
+│   ├── 07_finance.sql
+│   ├── 08_logistics.sql
+│   ├── 09_esg.sql
+│   ├── 10_aftersales.sql
+│   ├── 11_views.sql
+│   └── 20_fact_data.sql
+└── README.md
+```
+
+---
+
+## Reset Database
 
 ```bash
-# text2ontology 标准 PostgreSQL 连接（根据实际工具文档调整）
-python text2ontology.py \
-  --db-url "postgresql://ev_user:ev_password@localhost:5432/ev_parts" \
-  --schema public \
-  --output ev_parts_ontology.ttl
-```
-
-text2ontology 会自动读取：
-- 所有表的 `COMMENT ON TABLE` / `COMMENT ON COLUMN`
-- 主键、外键、唯一约束（用于推断关系）
-- 索引（用于推断重要查询路径）
-- 计算列（`GENERATED ALWAYS AS`，用于推断业务指标）
-
----
-
-## 数据库结构概览
-
-数据库 `ev_parts` 按业务域拆分为 **10 个 schema**，每个 schema 对应一个独立的业务域，方便 text2ontology 按域读取生成命名空间隔离的 ontology。
-
-### Schema & 表清单
-
-| Schema | 表 | 说明 |
-|--------|----|----|
-| **geo** | `dim_region`, `dim_country`, `dim_currency` | 16国、15币种、4大区 |
-| **product** | `dim_component_category`, `dim_component`, `bom_header`, `bom_item`, `dim_raw_material`, `component_material_usage`, `fact_raw_material_price_daily` | 25个零部件、多层BOM、原材料日价 |
-| **production** | `dim_factory`, `dim_production_line`, `fact_production_order`, `fact_quality_inspection`, `fact_scrap_event` | 10厂、14生产线、~4800生产订单 |
-| **procurement** | `dim_supplier`, `fact_purchase_order`, `fact_purchase_order_item`, `fact_supplier_delivery`, `fact_supplier_quality` | 20供应商、采购订单、来料质量 |
-| **sales** | `dim_customer`, `dim_sales_channel`, `fact_country_price_list`, `fact_price_agreement`, `fact_sales_order`, `fact_sales_order_item`, `fact_rebate`, `fact_volume_discount` | 20客户、多国定价、~4000销售订单 |
-| **inventory** | `dim_warehouse`, `fact_inventory_snapshot`, `fact_inventory_movement`, `fact_stockout_event` | 10仓、月末快照、断货事件 |
-| **finance** | `fact_exchange_rate_daily`, `fact_interest_rate_daily`, `fact_receivable_aging`, `fact_inventory_carrying_cost` | ~12000汇率行、利率、应收账龄 |
-| **logistics** | `fact_tariff_rate`, `fact_trade_lane`, `fact_freight_cost`, `fact_shipping_order` | 17关税规则、15航线 |
-| **esg** | `dim_emission_scope`, `fact_factory_energy_consumption`, `fact_component_carbon_footprint`, `fact_supplier_esg_score`, `fact_shipping_emission`, `fact_carbon_price`, `fact_carbon_tax`, `fact_carbon_credit` | 月度碳排、EU ETS碳价、碳税 |
-| **aftersales** | `dim_failure_mode`, `fact_warranty_claim`, `fact_field_failure` | 12故障模式、~800索赔、现场失效率 |
-
-### text2ontology 用法
-
-```bash
-# 按 schema 分别生成 ontology（推荐）
-text2ontology --db-url "postgresql://ev_user:ev_password@localhost:5432/ev_parts" --schema geo         --output geo.ttl
-text2ontology --db-url "postgresql://ev_user:ev_password@localhost:5432/ev_parts" --schema product     --output product.ttl
-# ... 每个 schema 独立生成
-
-# 或一次生成所有（视图在 public）
-text2ontology --db-url "postgresql://ev_user:ev_password@localhost:5432/ev_parts" --output ev_parts_full.ttl
-```
-
----
-
-## 核心指标口径
-
-以下指标口径用于校验 NL2SQL / text2ontology 生成的查询是否正确：
-
-### 收入类
-
-| 指标 | 口径 |
-|------|------|
-| **Gross Revenue** | `fact_sales_order.total_gross_revenue` = `SUM(qty × list_price)` |
-| **Net Revenue** | `total_gross_revenue - total_discount - rebate` = `fact_sales_order.total_net_revenue - fact_rebate.rebate_amount_usd` |
-| **FX Impact** | `Net Revenue (local CCY) × (current_rate - budget_rate) / budget_rate` |
-
-### 成本类
-
-| 指标 | 口径 |
-|------|------|
-| **Standard Material Cost** | `fact_sales_order_item.std_material_cost × qty` |
-| **Manufacturing Cost** | `fact_sales_order_item.manufacturing_cost × qty` |
-| **Freight Cost** | `fact_sales_order.total_freight_cost`（按净收入比例分摊到行项目） |
-| **Tariff Cost** | `fact_sales_order.total_tariff_cost`（= 货值 × `fact_tariff_rate.tariff_rate_pct`） |
-| **Carbon Tax Cost** | `fact_carbon_tax.carbon_tax_usd`（工厂月度，需按产量比例分摊到产品） |
-| **Carbon Cost per Unit** | `fact_component_carbon_footprint.total_kgco2e_per_unit × carbon_price_usd_per_tco2e / 1000` |
-
-### 库存财务类
-
-| 指标 | 口径 |
-|------|------|
-| **Inventory Carrying Cost** | `fact_inventory_carrying_cost.carrying_cost_usd` = `avg_inventory_value × (interest_rate + storage_rate + obsolescence_rate) × days/365` |
-| **Receivable Financing Cost** | `fact_receivable_aging.financing_cost_usd` = `total_outstanding × interest_rate × days/360` |
-| **Interest Cost Impact (+1%)** | `Δ = SUM(avg_inventory_value) × 0.01 / 12`（月度影响） |
-
-### 毛利类
-
-| 指标 | 口径 |
-|------|------|
-| **Gross Margin** | `Net Revenue - Std Material Cost - Manufacturing Cost` |
-| **Adjusted Gross Margin** | `Gross Margin - Freight Cost - Tariff Cost - Carbon Tax Cost` |
-| **Adjusted Gross Margin Rate** | `Adjusted Gross Margin / Net Revenue` |
-
-### 供应链质量类
-
-| 指标 | 口径 |
-|------|------|
-| **Supplier On-Time Delivery Rate** | `COUNT(is_on_time=TRUE) / COUNT(*) FROM fact_supplier_delivery GROUP BY supplier_id` |
-| **Supplier Defect Rate (PPM)** | `AVG(defect_ppm) FROM fact_supplier_quality GROUP BY supplier_id` |
-| **First Pass Yield (FPY)** | `SUM(passed_qty) / SUM(inspected_qty) FROM fact_quality_inspection GROUP BY prod_order_id` |
-| **Scrap Rate** | `SUM(scrap_qty) / SUM(actual_qty) FROM fact_production_order GROUP BY factory_id, component_id` |
-| **Stockout Rate** | `COUNT(DISTINCT stockout_event) / COUNT(DISTINCT component_id) FROM fact_stockout_event GROUP BY warehouse_id` |
-
-### ESG类
-
-| 指标 | 口径 |
-|------|------|
-| **Carbon Emission per Unit** | `fact_component_carbon_footprint.total_kgco2e_per_unit`（Scope1+2+3合计） |
-| **Carbon Cost per Unit** | `total_kgco2e_per_unit / 1000 × carbon_price_usd_per_tco2e` |
-
----
-
-## 分析示例查询
-
-详见 `docs/sample_questions.md`。
-
----
-
-## 重置数据库
-
-```bash
-# 删除数据卷并重建（清除所有数据）
 docker compose down -v
 docker compose up -d
-```
-
----
-
-## 文件结构
-
-```
-ev-parts-lakehouse/
-├── docker-compose.yml            # PostgreSQL 16 服务配置
-├── initdb/
-│   ├── 00_extensions.sql         # 扩展 + 10个 SCHEMA 创建
-│   ├── 01_geo.sql                # geo: DDL + 种子（国家/币种/地区）
-│   ├── 02_product.sql            # product: DDL + 种子（零部件/BOM/原材料）
-│   ├── 03_production.sql         # production: DDL + 种子（工厂/生产线）
-│   ├── 04_procurement.sql        # procurement: DDL + 种子（供应商）
-│   ├── 05_sales.sql              # sales: DDL + 种子（客户/渠道/价格）
-│   ├── 06_inventory.sql          # inventory: DDL + 种子（仓库）
-│   ├── 07_finance.sql            # finance: DDL（汇率/利率/应收）
-│   ├── 08_logistics.sql          # logistics: DDL + 种子（关税/航线）
-│   ├── 09_esg.sql                # esg: DDL + 种子（碳排放分类）
-│   ├── 10_aftersales.sql         # aftersales: DDL + 种子（故障模式）
-│   ├── 11_views.sql              # 跨 schema 分析视图
-│   └── 20_fact_data.sql          # 所有事实表批量数据（generate_series）
-├── docs/
-│   ├── er.md                     # ER图（Mermaid）
-│   └── sample_questions.md       # 示例分析问题 + 参考 SQL
-└── README.md
 ```
