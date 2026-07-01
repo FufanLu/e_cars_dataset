@@ -225,3 +225,61 @@ FROM production.fact_production_order po
 WHERE po.status = 'COMPLETED';
 
 COMMENT ON VIEW v_production_unit_cost IS '生产单位成本：批次产量 vs 单件成本，用于规模效应分析';
+
+-- =============================================================================
+-- VIEW: 客户360画像
+-- =============================================================================
+
+CREATE OR REPLACE VIEW v_customer_profile_360 AS
+WITH order_stats AS (
+    SELECT
+        so.customer_id,
+        COUNT(*)                              AS total_orders,
+        COUNT(*) FILTER (WHERE so.status = 'DELIVERED')     AS delivered_orders,
+        SUM(so.total_gross_revenue)           AS total_gross_revenue,
+        SUM(so.total_net_revenue)             AS total_net_revenue,
+        ROUND(AVG(so.total_net_revenue)::NUMERIC, 2) AS avg_order_value,
+        MIN(so.order_date)                    AS first_order_date,
+        MAX(so.order_date)                    AS last_order_date,
+        MODE() WITHIN GROUP (ORDER BY comp.component_code)  AS preferred_vehicle_code
+    FROM sales.fact_sales_order so
+    LEFT JOIN sales.fact_sales_order_item soi ON soi.so_id = so.so_id AND soi.item_seq = 10
+    LEFT JOIN product.dim_component comp ON comp.component_id = soi.component_id
+    GROUP BY so.customer_id
+),
+ct_label AS (
+    SELECT
+        c.customer_id,
+        CASE WHEN c.customer_type = 'CONSUMER' THEN '个人消费者'
+             WHEN c.customer_type = 'FLEET'    THEN '企业车队'
+             WHEN c.customer_type = 'LEASE'    THEN '租赁公司'
+             ELSE '政府采购' END AS type_label,
+        CASE WHEN os.total_net_revenue > 120000 THEN '高价值'
+             WHEN os.total_net_revenue > 80000  THEN '中价值'
+             WHEN os.total_net_revenue > 0      THEN '标准'
+             ELSE '零散' END AS value_tier
+    FROM sales.dim_customer c
+    LEFT JOIN order_stats os ON os.customer_id = c.customer_id
+)
+SELECT
+    c.customer_code,
+    c.customer_name,
+    ct.country_name,
+    ct.type_label,
+    ct.value_tier,
+    c.is_strategic,
+    COALESCE(os.total_orders, 0)        AS total_orders,
+    COALESCE(os.delivered_orders, 0)    AS delivered_orders,
+    COALESCE(os.total_net_revenue, 0)   AS total_net_revenue,
+    COALESCE(os.avg_order_value, 0)     AS avg_order_value,
+    os.first_order_date,
+    os.last_order_date,
+    (os.last_order_date - os.first_order_date) AS customer_lifespan_days,
+    os.preferred_vehicle_code
+FROM sales.dim_customer c
+LEFT JOIN order_stats os ON os.customer_id = c.customer_id
+JOIN ct_label ct ON ct.customer_id = c.customer_id
+JOIN geo.dim_country cnt ON cnt.country_id = c.country_id
+ORDER BY os.total_net_revenue DESC NULLS LAST;
+
+COMMENT ON VIEW v_customer_profile_360 IS '客户360画像：类型/价值分层/订单数/客单价/首选车型/生命周期';

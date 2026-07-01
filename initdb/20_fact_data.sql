@@ -208,8 +208,17 @@ WITH order_dates AS (
 )
 SELECT
     'SO-' || TO_CHAR(od.od, 'YYYYMMDD') || '-' || LPAD(od.dn::TEXT, 5, '0'),
-    (SELECT customer_id FROM dim_customer WHERE customer_type = 'CONSUMER' ORDER BY random() * od.dn LIMIT 1),
-    (SELECT channel_id FROM dim_sales_channel WHERE channel_code = 'DIRECT'),
+    (SELECT customer_id FROM dim_customer
+     WHERE customer_type = CASE WHEN od.dn % 100 < 75 THEN 'CONSUMER'
+                                WHEN od.dn % 100 < 88 THEN 'FLEET'
+                                WHEN od.dn % 100 < 95 THEN 'LEASE'
+                                ELSE 'GOVT' END
+     ORDER BY random() LIMIT 1),
+    (SELECT channel_id FROM dim_sales_channel
+     WHERE channel_code = CASE WHEN od.dn % 100 < 75 THEN 'DIRECT'
+                                WHEN od.dn % 100 < 88 THEN 'FLEET'
+                                WHEN od.dn % 100 < 95 THEN 'FLEET'
+                                ELSE 'GOVT_SALE' END),
     od.od, od.od + 21, od.od + 21 + (od.dn % 7),
     CASE WHEN od.dn % 4 = 0 THEN (SELECT factory_id FROM dim_factory WHERE factory_code='FAC-SHA')
          WHEN od.dn % 4 = 1 THEN (SELECT factory_id FROM dim_factory WHERE factory_code='FAC-FMT')
@@ -257,7 +266,7 @@ SELECT
     v.component_id, 1,
     v.list_price_usd, 0,
     ROUND((v.list_price_usd * (0.92 + (so.so_id % 10) * 0.012))::NUMERIC, 2),
-    ROUND((v.list_price_usd * (0.92 + (so.so_id % 10) * 0.012))::NUMERIC, 2),
+    ROUND(v.list_price_usd::NUMERIC, 2),
     ROUND((v.list_price_usd * (0.92 + (so.so_id % 10) * 0.012))::NUMERIC, 2),
     ROUND((v.standard_cost_usd * 0.82)::NUMERIC, 2),
     ROUND((v.standard_cost_usd * 0.12)::NUMERIC, 2)
@@ -268,8 +277,7 @@ CROSS JOIN LATERAL (
     WHERE is_finished_good = TRUE AND lifecycle_stage = 'MASS'
     ORDER BY component_id
     OFFSET (so.so_id % 7) LIMIT 1
-) v
-WHERE so.so_id % 3 = 0;
+) v;
 
 -- 40%的订单加FSD选装
 INSERT INTO fact_sales_order_item (so_id, item_seq, component_id, qty, list_price, discount_pct, net_unit_price, gross_line_amount, net_line_amount, std_material_cost, manufacturing_cost)

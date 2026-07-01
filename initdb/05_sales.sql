@@ -156,7 +156,7 @@ SELECT
     CASE WHEN n.n % 100 < 75 THEN 0 ELSE 500000 END,
     CASE WHEN n.n % 100 < 75 THEN 0 ELSE 30 END,
     c.currency_id,
-    FALSE
+    CASE WHEN n.n % 100 >= 88 THEN TRUE ELSE FALSE END,
 FROM generate_series(1, 500) AS n(n)
 CROSS JOIN LATERAL (
     SELECT country_id, currency_id FROM geo.dim_country
