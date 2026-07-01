@@ -48,7 +48,7 @@ postgresql://ev_user:ev_password@localhost:15432/ev_parts
 | **product** | 7 | 8 vehicle models, 27 components, 14 raw materials, multi-level BOM |
 | **production** | 7 | 5 Gigafactories, 20 production lines, 20 process steps |
 | **procurement** | 5 | 12 suppliers (CATL/Panasonic/TSMC...), POs, quality, delivery |
-| **sales** | 4 | 500+ customers, direct sales, vehicle orders (VIN) |
+| **sales** | 4 | 500 customers (CONSUMER 75%/FLEET 13%/LEASE 7%/GOVT 5%), direct sales, vehicle orders (VIN) |
 | **inventory** | 4 | 22 warehouses (raw/WIP/line-side/in-transit/aftermarket) |
 | **finance** | 4 | 12K+ exchange rate rows, interest rates, receivables aging |
 | **logistics** | 4 | Tariff rates, 4 trade lanes, freight costs |
@@ -68,6 +68,7 @@ postgresql://ev_user:ev_password@localhost:15432/ev_parts
 | `v_vehicle_carbon_footprint` | Per-vehicle carbon footprint by factory and year |
 | `v_supplier_delivery_scorecard` | On-time rate, avg days late, defect PPM per supplier |
 | `v_production_unit_cost` | Unit cost = (labor + material + overhead) / qty per order |
+| `v_customer_profile_360` | Customer 360: type, value tier, orders, avg order value, lifespan, preferred vehicle |
 
 ---
 
@@ -83,6 +84,8 @@ postgresql://ev_user:ev_password@localhost:15432/ev_parts
 | Q6 | Does higher batch size mean lower unit cost? (economies of scale) | `v_production_unit_cost` |
 | Q7 | Which country carries the heaviest carbon tax burden? | `v_net_profit` GROUP BY `ship_to_country` |
 | Q8 | How much does carbon tax impact net margin? (regression analysis) | `v_net_profit` → `carbon_tax` vs `net_profit_margin_pct` |
+| Q9 | Which customer segment drives the most revenue? | `v_customer_profile_360` GROUP BY `type_label` |
+| Q10 | What's the preferred vehicle model per country? | `v_customer_profile_360` + `preferred_vehicle_code` GROUP BY `country_name` |
 
 ---
 

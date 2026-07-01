@@ -264,7 +264,7 @@ ct_label AS (
 SELECT
     c.customer_code,
     c.customer_name,
-    ct.country_name,
+    cnt.country_name,
     ct.type_label,
     ct.value_tier,
     c.is_strategic,
